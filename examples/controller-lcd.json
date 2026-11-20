@@ -1,0 +1,136 @@
+{
+  "title": "Arduino Uno + 16\u00d72 LCD",
+  "components": [
+    {
+      "ref": "U1",
+      "part": "arduino_uno",
+      "value": "Uno R3 / USB power",
+      "position": {
+        "x": 210,
+        "y": 130
+      }
+    },
+    {
+      "ref": "LCD1",
+      "part": "lcd1602",
+      "value": "5 V HD44780-compatible",
+      "position": {
+        "x": 830,
+        "y": 130
+      }
+    },
+    {
+      "ref": "V1",
+      "part": "dc_source",
+      "value": "5 V",
+      "position": {
+        "x": 210,
+        "y": 648
+      }
+    },
+    {
+      "ref": "RV1",
+      "part": "potentiometer",
+      "value": "10 kohm",
+      "position": {
+        "x": 830,
+        "y": 648
+      }
+    },
+    {
+      "ref": "R1",
+      "part": "resistor",
+      "value": "220 ohm",
+      "position": {
+        "x": 210,
+        "y": 902
+      }
+    }
+  ],
+  "nets": [
+    {
+      "name": "VCC",
+      "pins": [
+        "V1.+",
+        "U1.5V",
+        "LCD1.2",
+        "RV1.1",
+        "R1.1"
+      ]
+    },
+    {
+      "name": "GND",
+      "pins": [
+        "V1.-",
+        "U1.GND",
+        "LCD1.1",
+        "LCD1.5",
+        "LCD1.16",
+        "RV1.2"
+      ]
+    },
+    {
+      "name": "CONTRAST",
+      "pins": [
+        "RV1.W",
+        "LCD1.3"
+      ]
+    },
+    {
+      "name": "BACKLIGHT",
+      "pins": [
+        "R1.2",
+        "LCD1.15"
+      ]
+    },
+    {
+      "name": "RS",
+      "pins": [
+        "U1.D12",
+        "LCD1.4"
+      ]
+    },
+    {
+      "name": "ENABLE",
+      "pins": [
+        "U1.D11",
+        "LCD1.6"
+      ]
+    },
+    {
+      "name": "DATA4",
+      "pins": [
+        "U1.D5",
+        "LCD1.11"
+      ]
+    },
+    {
+      "name": "DATA5",
+      "pins": [
+        "U1.D4",
+        "LCD1.12"
+      ]
+    },
+    {
+      "name": "DATA6",
+      "pins": [
+        "U1.D3",
+        "LCD1.13"
+      ]
+    },
+    {
+      "name": "DATA7",
+      "pins": [
+        "U1.D2",
+        "LCD1.14"
+      ]
+    }
+  ],
+  "custom_parts": {},
+  "notes": [
+    "4-bit parallel wiring follows the Arduino LiquidCrystal example. https://docs.arduino.cc/learn/electronics/lcd-displays/",
+    "V1 represents the Uno 5 V rail from USB; do not add a second external 5 V supply while USB powers the board.",
+    "10 kohm contrast potentiometer and 220 ohm backlight resistor are example values; check your LCD backlight specification.",
+    "LCD D0\u2013D3 are unused in 4-bit mode. Firmware must match RS=12, E=11, D4=5, D5=4, D6=3, D7=2."
+  ]
+}

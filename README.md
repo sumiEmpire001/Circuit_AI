@@ -1,12 +1,94 @@
-# Circuit API — prototype 0.2
+# Circuit AI — editable multi-component studio (v0.3)
 
-A starting implementation for a prompt-to-electrical-schematic API. It renders real electrical symbols and connected wires, not block diagrams. It is **not a newly trained AI model**, and it does not promise arbitrary circuit synthesis or guaranteed electrical correctness.
+Prompt → reviewable netlist → electrical-rule checks → editable schematic → SVG/PNG downloads.
+
+Open `/studio` for the new editor. The original three-template API at `/v1/generate` and the simple page at `/` remain available.
+
+## Try it yourself
+
+1. Open `/studio`, choose **Arduino Uno + 16×2 LCD**, and press **Load example**.
+2. Or enter `Arduino Uno with a 16x2 LCD` and press **Draft new circuit** in built-in mode.
+3. Edit values and connections in the tables, then press **Apply edits & check**. Drag symbols to change their placement.
+4. Download SVG, PNG, or editable JSON. Import the JSON later to continue editing. The latest applied design is also saved in this browser; API keys are not saved.
+5. Press **Run example tests** for three server-backed software checks.
+
+Free-form prose and conversational revisions require a reachable Ollama service configured with `OLLAMA_URL` and `OLLAMA_MODEL`. Vercel cannot reach Ollama on your phone/laptop through `localhost`. Use a server-reachable service. AI output is checked against the catalog and netlist schema, but prompt interpretation must still be reviewed. Missing or unknown parts trigger clarification. No live model was configured during this implementation; model-boundary tests use mocks.
+
+## What this release supports
+
+- 13 built-in logical part definitions including Arduino Uno R3, HD44780-compatible parallel 16×2 LCD, resistors, capacitors, LEDs, diodes, inductors, potentiometers, switches, DC sources, generic NPN/NMOS devices, and connectors.
+- User-defined components through `custom_parts`, with exact pin names and pin roles. These are rendered as generic symbols and remain unverified.
+- Up to 200 components, 1,000 nets, 100 custom definitions, and 64 pins per custom definition **per design**. This is not a catalog of thousands of verified devices.
+- Multi-drop named nets, real component symbols, and direct wires between unobstructed facing pins. Identical green net labels connect across the drawing; this is not a full obstacle-avoiding wire router.
+- Schema validation: unknown references/pins, duplicate references/nets, conflicting pin assignments, malformed data, resource limits.
+- Limited electrical-rule checks: required pins, shorted two-terminal devices, direct power-to-ground shorts, direct supply mismatches, fixed push-pull output conflicts, missing values, disconnected groups. Generic bidirectional GPIO configuration and indirect supply paths are not fully analyzed.
+- Edits are rendered even when ERC errors exist, with an explicit draft/error status. Structural errors return HTTP 422.
+
+No SPICE/Proteus simulation, native Proteus file export, universal controller synthesis, automatic firmware generation, or hardware correctness guarantee is provided. The 1,000-case test exercises generated software variations; it is not 1,000 electrically validated circuit families.
+
+## New API
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /v2/catalog` | Part definitions, pins, limits, AI configuration status |
+| `GET /v2/examples` | Controller/LCD, LED bank, RC ladder editable designs |
+| `POST /v2/draft` | `{prompt, parser, previous_design?}` → checked draft and SVG |
+| `POST /v2/render` | `{design, image_format: "svg" or "png"}` → redraw after edits |
+| `POST /v2/validate` | Design object → electrical-rule diagnostics |
+
+`CIRCUIT_API_KEY`, when configured, protects all generation/render/validation endpoints via the `X-API-Key` header. PNG output is capped at 4,096 pixels on its longest side. JSON is the source of truth for editing; an exported PNG cannot be re-imported as a circuit.
+
+### Custom component/net input (works without an AI provider)
+
+```text
+component V1 dc_source 5 V
+component R1 resistor 330 ohm
+component D1 led red
+net VCC V1.+ R1.1
+net LED R1.2 D1.A
+net GND D1.K V1.-
+```
+
+Use exactly `component REF PART VALUE` and `net NAME REF.PIN REF.PIN ...`. Extra prose is rejected rather than silently ignored. Supported example prompts are `Arduino Uno with a 16x2 LCD`, `4-channel LED bank` (1–64 channels), and `Two-stage RC filter`.
+
+For a part outside the catalog, import/edit JSON with a `custom_parts` entry:
+
+```json
+{"custom_parts":{"my_sensor":{"name":"User-specified sensor","pins":{"VCC":"power_in","GND":"ground","OUT":"output"},"required":["VCC","GND","OUT"]}}}
+```
+
+This fragment belongs inside a full design with `components` and `nets`. Supply manufacturer pinouts yourself; the engine does not invent them.
+
+## Controller/LCD reference
+
+The Uno-to-LCD example follows [Arduino's LiquidCrystal documentation](https://docs.arduino.cc/learn/electronics/lcd-displays/): RS=D12, E=D11, LCD D4–D7=Uno D5–D2, RW grounded, contrast potentiometer. LCD pin numbers are for the common 16-pin parallel interface; verify your exact module. V1 represents the Uno USB-derived 5 V rail, not a second supply to connect simultaneously.
+
+![Controller and LCD draft](examples/controller-lcd.png)
+
+## Developer tests
+
+```sh
+pip install -r requirements-dev.txt
+python -m pytest -q
+uvicorn app.main:app --host 127.0.0.1 --port 8765
+```
+
+Open http://127.0.0.1:8765/studio. Optional browser test in a second terminal (requires Playwright and Chromium):
+
+```sh
+pip install playwright
+python scripts/browser_test.py
+```
+
+Set `BROWSER_EXECUTABLE` for your Chromium path and `STUDIO_TEST_URL` to test another server. The browser test covers value edits, drag, downloads, example checks, JSON import, and mobile overflow. GitHub Actions runs the Python suite on pushes/PRs. See `TESTING.md` for the validation record and remaining limits.
+
+## Original simple-circuit workflow
 
 ## Diagram style
 
 The default `diagram_style: "proteus"` uses a light drafting grid, green orthogonal wires, junction dots, brown component symbols, IEC rectangular resistors, engineering-unit values, and pin labels. Choose `"classic"` for the original white schematic. Both styles use the same checked graph and calculations.
 
-The browser offers SVG, PNG, circuit JSON, and (when available) SPICE downloads. Proteus-inspired describes the appearance only: no `.pdsprj` or `.dsn` export and no Proteus simulation are implemented. Complex microcontroller/LCD circuits like the reference picture are not supported yet.
+The browser offers SVG, PNG, circuit JSON, and (when available) SPICE downloads. Proteus-inspired describes the appearance only: no `.pdsprj` or `.dsn` export and no Proteus simulation are implemented. For controller/LCD drafts use the v2 studio described above.
 
 ![Proteus-inspired LED schematic](examples/led.png)
 

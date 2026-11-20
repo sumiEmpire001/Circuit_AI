@@ -1,0 +1,210 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1260" height="1112" viewBox="0 0 1260 1112" role="img" aria-labelledby="title">
+<title id="title">Arduino Uno + 16×2 LCD</title>
+<defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#c4c8ad" stroke-width="0.5"/></pattern></defs>
+<rect width="100%" height="100%" fill="#eeeedb"/><rect width="100%" height="100%" fill="url(#grid)"/>
+<style>text{font-family:DejaVu Sans,sans-serif;fill:#303d2b;font-size:12px}.wire{fill:none;stroke:#285b36;stroke-width:1.7}.symbol{fill:none;stroke:#874d3d;stroke-width:2}.label{font-size:11px;fill:#285b36}.pin{font-size:10px;fill:#874d3d}.component{cursor:move}</style>
+<text x="30" y="30" style="font-size:20px">Arduino Uno + 16×2 LCD</text>
+<text x="30" y="54">DRAFT • 0 ERC errors • Not simulated • Matching net labels are connected</text>
+<path d="M 468 200 H 802" class="wire" data-net="RS"/>
+<path d="M 468 222 H 802" class="wire" data-net="ENABLE"/>
+<path d="M 468 244 H 802" class="wire" data-net="DATA4"/>
+<path d="M 468 266 H 802" class="wire" data-net="DATA5"/>
+<path d="M 468 288 H 802" class="wire" data-net="DATA6"/>
+<path d="M 468 310 H 802" class="wire" data-net="DATA7"/>
+<g class="component" data-ref="U1" data-x="210" data-y="130">
+<text x="210" y="105" class="" text-anchor="start">U1 · arduino_uno</text>
+<text x="210" y="123" class="" text-anchor="start">Uno R3 / USB power</text>
+<rect x="210" y="130" width="230" height="378" fill="#e4e5c7" stroke="#874d3d" stroke-width="2"/>
+<text x="325.0" y="160" class="" text-anchor="middle">Arduino Uno R3</text>
+<path d="M 182 200 H 210" class="wire" />
+<text x="215" y="195" class="pin" text-anchor="start">5V</text>
+<text x="177" y="195" class="label" text-anchor="end">VCC</text>
+<circle cx="182" cy="200" r="2.7" fill="#285b36" data-pin="U1.5V" data-net="VCC"/>
+<path d="M 182 222 H 210" class="wire" />
+<text x="215" y="217" class="pin" text-anchor="start">GND</text>
+<text x="177" y="217" class="label" text-anchor="end">GND</text>
+<circle cx="182" cy="222" r="2.7" fill="#285b36" data-pin="U1.GND" data-net="GND"/>
+<path d="M 468 332 H 440" class="wire" />
+<text x="435" y="327" class="pin" text-anchor="end">D0</text>
+<path d="M 465 329 l 6 6 M 465 335 l 6 -6" class="symbol" />
+<path d="M 468 354 H 440" class="wire" />
+<text x="435" y="349" class="pin" text-anchor="end">D1</text>
+<path d="M 465 351 l 6 6 M 465 357 l 6 -6" class="symbol" />
+<path d="M 468 310 H 440" class="wire" />
+<text x="435" y="305" class="pin" text-anchor="end">D2</text>
+<text x="473" y="305" class="label" text-anchor="start">DATA7</text>
+<circle cx="468" cy="310" r="2.7" fill="#285b36" data-pin="U1.D2" data-net="DATA7"/>
+<path d="M 468 288 H 440" class="wire" />
+<text x="435" y="283" class="pin" text-anchor="end">D3</text>
+<text x="473" y="283" class="label" text-anchor="start">DATA6</text>
+<circle cx="468" cy="288" r="2.7" fill="#285b36" data-pin="U1.D3" data-net="DATA6"/>
+<path d="M 468 266 H 440" class="wire" />
+<text x="435" y="261" class="pin" text-anchor="end">D4</text>
+<text x="473" y="261" class="label" text-anchor="start">DATA5</text>
+<circle cx="468" cy="266" r="2.7" fill="#285b36" data-pin="U1.D4" data-net="DATA5"/>
+<path d="M 468 244 H 440" class="wire" />
+<text x="435" y="239" class="pin" text-anchor="end">D5</text>
+<text x="473" y="239" class="label" text-anchor="start">DATA4</text>
+<circle cx="468" cy="244" r="2.7" fill="#285b36" data-pin="U1.D5" data-net="DATA4"/>
+<path d="M 468 376 H 440" class="wire" />
+<text x="435" y="371" class="pin" text-anchor="end">D6</text>
+<path d="M 465 373 l 6 6 M 465 379 l 6 -6" class="symbol" />
+<path d="M 468 398 H 440" class="wire" />
+<text x="435" y="393" class="pin" text-anchor="end">D7</text>
+<path d="M 465 395 l 6 6 M 465 401 l 6 -6" class="symbol" />
+<path d="M 468 420 H 440" class="wire" />
+<text x="435" y="415" class="pin" text-anchor="end">D8</text>
+<path d="M 465 417 l 6 6 M 465 423 l 6 -6" class="symbol" />
+<path d="M 468 442 H 440" class="wire" />
+<text x="435" y="437" class="pin" text-anchor="end">D9</text>
+<path d="M 465 439 l 6 6 M 465 445 l 6 -6" class="symbol" />
+<path d="M 468 464 H 440" class="wire" />
+<text x="435" y="459" class="pin" text-anchor="end">D10</text>
+<path d="M 465 461 l 6 6 M 465 467 l 6 -6" class="symbol" />
+<path d="M 468 222 H 440" class="wire" />
+<text x="435" y="217" class="pin" text-anchor="end">D11</text>
+<text x="473" y="217" class="label" text-anchor="start">ENABLE</text>
+<circle cx="468" cy="222" r="2.7" fill="#285b36" data-pin="U1.D11" data-net="ENABLE"/>
+<path d="M 468 200 H 440" class="wire" />
+<text x="435" y="195" class="pin" text-anchor="end">D12</text>
+<text x="473" y="195" class="label" text-anchor="start">RS</text>
+<circle cx="468" cy="200" r="2.7" fill="#285b36" data-pin="U1.D12" data-net="RS"/>
+<path d="M 468 486 H 440" class="wire" />
+<text x="435" y="481" class="pin" text-anchor="end">D13</text>
+<path d="M 465 483 l 6 6 M 465 489 l 6 -6" class="symbol" />
+<path d="M 182 244 H 210" class="wire" />
+<text x="215" y="239" class="pin" text-anchor="start">A0</text>
+<path d="M 179 241 l 6 6 M 179 247 l 6 -6" class="symbol" />
+<path d="M 182 266 H 210" class="wire" />
+<text x="215" y="261" class="pin" text-anchor="start">A1</text>
+<path d="M 179 263 l 6 6 M 179 269 l 6 -6" class="symbol" />
+<path d="M 182 288 H 210" class="wire" />
+<text x="215" y="283" class="pin" text-anchor="start">A2</text>
+<path d="M 179 285 l 6 6 M 179 291 l 6 -6" class="symbol" />
+<path d="M 182 310 H 210" class="wire" />
+<text x="215" y="305" class="pin" text-anchor="start">A3</text>
+<path d="M 179 307 l 6 6 M 179 313 l 6 -6" class="symbol" />
+<path d="M 182 332 H 210" class="wire" />
+<text x="215" y="327" class="pin" text-anchor="start">A4</text>
+<path d="M 179 329 l 6 6 M 179 335 l 6 -6" class="symbol" />
+<path d="M 182 354 H 210" class="wire" />
+<text x="215" y="349" class="pin" text-anchor="start">A5</text>
+<path d="M 179 351 l 6 6 M 179 357 l 6 -6" class="symbol" />
+</g>
+<g class="component" data-ref="LCD1" data-x="830" data-y="130">
+<text x="830" y="105" class="" text-anchor="start">LCD1 · lcd1602</text>
+<text x="830" y="123" class="" text-anchor="start">5 V HD44780-compatible</text>
+<rect x="830" y="130" width="230" height="290" fill="#e4e5c7" stroke="#874d3d" stroke-width="2"/>
+<rect x="850" y="142" width="190" height="28" fill="#35431b"/>
+<text x="860" y="161" style="fill:#b5c77b">16 × 2 LCD</text>
+<path d="M 802 332 H 830" class="wire" />
+<text x="835" y="327" class="pin" text-anchor="start">1 VSS</text>
+<text x="797" y="327" class="label" text-anchor="end">GND</text>
+<circle cx="802" cy="332" r="2.7" fill="#285b36" data-pin="LCD1.1" data-net="GND"/>
+<path d="M 802 354 H 830" class="wire" />
+<text x="835" y="349" class="pin" text-anchor="start">2 VDD</text>
+<text x="797" y="349" class="label" text-anchor="end">VCC</text>
+<circle cx="802" cy="354" r="2.7" fill="#285b36" data-pin="LCD1.2" data-net="VCC"/>
+<path d="M 802 376 H 830" class="wire" />
+<text x="835" y="371" class="pin" text-anchor="start">3 VO</text>
+<text x="797" y="371" class="label" text-anchor="end">CONTRAST</text>
+<circle cx="802" cy="376" r="2.7" fill="#285b36" data-pin="LCD1.3" data-net="CONTRAST"/>
+<path d="M 802 200 H 830" class="wire" />
+<text x="835" y="195" class="pin" text-anchor="start">4 RS</text>
+<text x="797" y="195" class="label" text-anchor="end">RS</text>
+<circle cx="802" cy="200" r="2.7" fill="#285b36" data-pin="LCD1.4" data-net="RS"/>
+<path d="M 802 398 H 830" class="wire" />
+<text x="835" y="393" class="pin" text-anchor="start">5 RW</text>
+<text x="797" y="393" class="label" text-anchor="end">GND</text>
+<circle cx="802" cy="398" r="2.7" fill="#285b36" data-pin="LCD1.5" data-net="GND"/>
+<path d="M 802 222 H 830" class="wire" />
+<text x="835" y="217" class="pin" text-anchor="start">6 E</text>
+<text x="797" y="217" class="label" text-anchor="end">ENABLE</text>
+<circle cx="802" cy="222" r="2.7" fill="#285b36" data-pin="LCD1.6" data-net="ENABLE"/>
+<path d="M 1088 200 H 1060" class="wire" />
+<text x="1055" y="195" class="pin" text-anchor="end">7 D0</text>
+<path d="M 1085 197 l 6 6 M 1085 203 l 6 -6" class="symbol" />
+<path d="M 1088 222 H 1060" class="wire" />
+<text x="1055" y="217" class="pin" text-anchor="end">8 D1</text>
+<path d="M 1085 219 l 6 6 M 1085 225 l 6 -6" class="symbol" />
+<path d="M 1088 244 H 1060" class="wire" />
+<text x="1055" y="239" class="pin" text-anchor="end">9 D2</text>
+<path d="M 1085 241 l 6 6 M 1085 247 l 6 -6" class="symbol" />
+<path d="M 1088 266 H 1060" class="wire" />
+<text x="1055" y="261" class="pin" text-anchor="end">10 D3</text>
+<path d="M 1085 263 l 6 6 M 1085 269 l 6 -6" class="symbol" />
+<path d="M 802 244 H 830" class="wire" />
+<text x="835" y="239" class="pin" text-anchor="start">11 D4</text>
+<text x="797" y="239" class="label" text-anchor="end">DATA4</text>
+<circle cx="802" cy="244" r="2.7" fill="#285b36" data-pin="LCD1.11" data-net="DATA4"/>
+<path d="M 802 266 H 830" class="wire" />
+<text x="835" y="261" class="pin" text-anchor="start">12 D5</text>
+<text x="797" y="261" class="label" text-anchor="end">DATA5</text>
+<circle cx="802" cy="266" r="2.7" fill="#285b36" data-pin="LCD1.12" data-net="DATA5"/>
+<path d="M 802 288 H 830" class="wire" />
+<text x="835" y="283" class="pin" text-anchor="start">13 D6</text>
+<text x="797" y="283" class="label" text-anchor="end">DATA6</text>
+<circle cx="802" cy="288" r="2.7" fill="#285b36" data-pin="LCD1.13" data-net="DATA6"/>
+<path d="M 802 310 H 830" class="wire" />
+<text x="835" y="305" class="pin" text-anchor="start">14 D7</text>
+<text x="797" y="305" class="label" text-anchor="end">DATA7</text>
+<circle cx="802" cy="310" r="2.7" fill="#285b36" data-pin="LCD1.14" data-net="DATA7"/>
+<path d="M 1088 288 H 1060" class="wire" />
+<text x="1055" y="283" class="pin" text-anchor="end">15 A</text>
+<text x="1093" y="283" class="label" text-anchor="start">BACKLIGHT</text>
+<circle cx="1088" cy="288" r="2.7" fill="#285b36" data-pin="LCD1.15" data-net="BACKLIGHT"/>
+<path d="M 1088 310 H 1060" class="wire" />
+<text x="1055" y="305" class="pin" text-anchor="end">16 K</text>
+<text x="1093" y="305" class="label" text-anchor="start">GND</text>
+<circle cx="1088" cy="310" r="2.7" fill="#285b36" data-pin="LCD1.16" data-net="GND"/>
+</g>
+<g class="component" data-ref="V1" data-x="210" data-y="648">
+<text x="210" y="623" class="" text-anchor="start">V1 · dc_source</text>
+<text x="210" y="641" class="" text-anchor="start">5 V</text>
+<path d="M 210 718 H 280 M 370 718 H 440" class="wire" />
+<circle class="symbol" cx="325" cy="718" r="25"/>
+<path d="M 280 718 H 300 M 350 718 H 370 M 308 718 h 10 m -5 -5 v 10 M 333 718 h 10" class="symbol" />
+<path d="M 182 718 H 210" class="wire" />
+<text x="215" y="713" class="pin" text-anchor="start">+</text>
+<text x="177" y="713" class="label" text-anchor="end">VCC</text>
+<circle cx="182" cy="718" r="2.7" fill="#285b36" data-pin="V1.+" data-net="VCC"/>
+<path d="M 468 718 H 440" class="wire" />
+<text x="435" y="713" class="pin" text-anchor="end">-</text>
+<text x="473" y="713" class="label" text-anchor="start">GND</text>
+<circle cx="468" cy="718" r="2.7" fill="#285b36" data-pin="V1.-" data-net="GND"/>
+</g>
+<g class="component" data-ref="RV1" data-x="830" data-y="648">
+<text x="830" y="623" class="" text-anchor="start">RV1 · potentiometer</text>
+<text x="830" y="641" class="" text-anchor="start">10 kohm</text>
+<path d="M 830 718 H 900 M 990 718 H 1060" class="wire" />
+<rect class="symbol" x="900" y="708" width="90" height="20"/>
+<path d="M 830 740 H 945 V 728 m -5 6 l 5 -6 l 5 6" class="symbol" />
+<path d="M 802 718 H 830" class="wire" />
+<text x="835" y="713" class="pin" text-anchor="start">1</text>
+<text x="797" y="713" class="label" text-anchor="end">VCC</text>
+<circle cx="802" cy="718" r="2.7" fill="#285b36" data-pin="RV1.1" data-net="VCC"/>
+<path d="M 802 740 H 830" class="wire" />
+<text x="835" y="735" class="pin" text-anchor="start">W</text>
+<text x="797" y="735" class="label" text-anchor="end">CONTRAST</text>
+<circle cx="802" cy="740" r="2.7" fill="#285b36" data-pin="RV1.W" data-net="CONTRAST"/>
+<path d="M 1088 718 H 1060" class="wire" />
+<text x="1055" y="713" class="pin" text-anchor="end">2</text>
+<text x="1093" y="713" class="label" text-anchor="start">GND</text>
+<circle cx="1088" cy="718" r="2.7" fill="#285b36" data-pin="RV1.2" data-net="GND"/>
+</g>
+<g class="component" data-ref="R1" data-x="210" data-y="902">
+<text x="210" y="877" class="" text-anchor="start">R1 · resistor</text>
+<text x="210" y="895" class="" text-anchor="start">220 ohm</text>
+<path d="M 210 972 H 280 M 370 972 H 440" class="wire" />
+<rect class="symbol" x="280" y="962" width="90" height="20"/>
+<path d="M 182 972 H 210" class="wire" />
+<text x="215" y="967" class="pin" text-anchor="start">1</text>
+<text x="177" y="967" class="label" text-anchor="end">VCC</text>
+<circle cx="182" cy="972" r="2.7" fill="#285b36" data-pin="R1.1" data-net="VCC"/>
+<path d="M 468 972 H 440" class="wire" />
+<text x="435" y="967" class="pin" text-anchor="end">2</text>
+<text x="473" y="967" class="label" text-anchor="start">BACKLIGHT</text>
+<circle cx="468" cy="972" r="2.7" fill="#285b36" data-pin="R1.2" data-net="BACKLIGHT"/>
+</g>
+<text x="30" y="1090" class="" text-anchor="start">Draft schematic. Crossed unused pins. Named nets connect across the sheet. Verify package pinouts before building.</text>
+</svg>

@@ -3,7 +3,7 @@
   "info": {
     "title": "Circuit API",
     "description": "Checked template schematics; optional AI intent extraction. Not a trained universal circuit model.",
-    "version": "0.2.0"
+    "version": "0.3.0"
   },
   "paths": {
     "/": {
@@ -109,10 +109,387 @@
           }
         }
       }
+    },
+    "/studio": {
+      "get": {
+        "summary": "Studio",
+        "operationId": "studio_studio_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/catalog": {
+      "get": {
+        "summary": "Catalog",
+        "operationId": "catalog_v2_catalog_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/examples": {
+      "get": {
+        "summary": "Examples",
+        "operationId": "examples_v2_examples_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/render": {
+      "post": {
+        "summary": "Render",
+        "operationId": "render_v2_render_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/validate": {
+      "post": {
+        "summary": "Validate",
+        "operationId": "validate_v2_validate_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Design"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/draft": {
+      "post": {
+        "summary": "Draft",
+        "operationId": "draft_v2_draft_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Api-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "Component": {
+        "properties": {
+          "ref": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_+-]{0,31}$",
+            "title": "Ref"
+          },
+          "part": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_+-]{0,31}$",
+            "title": "Part"
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Value",
+            "default": ""
+          },
+          "position": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Position"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ref",
+          "part"
+        ],
+        "title": "Component"
+      },
+      "CustomPart": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "pins": {
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "passive",
+                "input",
+                "output",
+                "bidirectional",
+                "power_in",
+                "power_out",
+                "ground"
+              ]
+            },
+            "type": "object",
+            "maxProperties": 64,
+            "minProperties": 1,
+            "title": "Pins"
+          },
+          "required": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 64,
+            "title": "Required"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "pins"
+        ],
+        "title": "CustomPart"
+      },
+      "Design": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title",
+            "default": "Circuit draft"
+          },
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/Component"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Components"
+          },
+          "nets": {
+            "items": {
+              "$ref": "#/components/schemas/Net"
+            },
+            "type": "array",
+            "maxItems": 1000,
+            "title": "Nets"
+          },
+          "custom_parts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CustomPart"
+            },
+            "type": "object",
+            "maxProperties": 100,
+            "title": "Custom Parts"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "components"
+        ],
+        "title": "Design"
+      },
+      "DraftRequest": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "maxLength": 12000,
+            "minLength": 3,
+            "title": "Prompt"
+          },
+          "parser": {
+            "type": "string",
+            "enum": [
+              "builtin",
+              "ollama"
+            ],
+            "title": "Parser",
+            "default": "builtin"
+          },
+          "previous_design": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Design"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "prompt"
+        ],
+        "title": "DraftRequest"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -125,6 +502,76 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "Net": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_+-]{0,31}$",
+            "title": "Name"
+          },
+          "pins": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 400,
+            "minItems": 2,
+            "title": "Pins"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "pins"
+        ],
+        "title": "Net"
+      },
+      "Position": {
+        "properties": {
+          "x": {
+            "type": "number",
+            "maximum": 100000.0,
+            "minimum": 170.0,
+            "title": "X"
+          },
+          "y": {
+            "type": "number",
+            "maximum": 100000.0,
+            "minimum": 110.0,
+            "title": "Y"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "x",
+          "y"
+        ],
+        "title": "Position"
+      },
+      "RenderRequest": {
+        "properties": {
+          "design": {
+            "$ref": "#/components/schemas/Design"
+          },
+          "image_format": {
+            "type": "string",
+            "enum": [
+              "svg",
+              "png"
+            ],
+            "title": "Image Format",
+            "default": "svg"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "design"
+        ],
+        "title": "RenderRequest"
       },
       "Request": {
         "properties": {

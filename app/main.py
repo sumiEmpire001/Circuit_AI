@@ -206,17 +206,17 @@ def spice(components):
         lines.append(f"{c['ref']} {a} {b} {value}")
     return '\n'.join(lines+['.op','.ac dec 20 1 1e7','.end',''])
 
-app = FastAPI(title='Circuit API', version='0.2.0', description='Checked template schematics; optional AI intent extraction. Not a trained universal circuit model.')
+app = FastAPI(title='Circuit API', version='0.3.0', description='Checked template schematics; optional AI intent extraction. Not a trained universal circuit model.')
 @app.get('/', response_class=HTMLResponse)
 def home():
     return Path(__file__).with_name('index.html').read_text()
 
 @app.get('/health')
-def health(): return {'status':'ok','version':'0.2.0'}
+def health(): return {'status':'ok','version':'0.3.0'}
 
 @app.get('/v1/capabilities')
 def capabilities():
-    return {'circuits':KINDS, 'formats':['svg','png'], 'diagram_styles':['proteus','classic'],
+    return {'multi_component_studio':'/studio', 'multi_component_api':'/v2/draft', 'circuits':KINDS, 'formats':['svg','png'], 'diagram_styles':['proteus','classic'],
             'default_diagram_style':'proteus', 'native_proteus_export':False, 'builtin_parser':'strict named parameters',
             'ollama_configured':bool(os.getenv('OLLAMA_URL') and os.getenv('OLLAMA_MODEL')),
             'trained_model':False, 'spice_simulation':False}
@@ -242,3 +242,7 @@ async def generate(req: Request, x_api_key: str | None = Header(default=None)):
     if req.image_format == 'png':
         result['image'] = {'mime_type':'image/png', 'base64':base64.b64encode(resvg_py.svg_to_bytes(svg_string=svg, zoom=2, dpi=96, font_files=[str(Path(__file__).with_name("fonts") / "SchematicSans.ttf")])).decode()}
     return result
+
+# General multi-component draft editor; v1 remains backward compatible.
+from app.multi_api import router as multi_router
+app.include_router(multi_router)
