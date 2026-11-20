@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0",
+  "intent": {
+    "kind": "rc_lowpass",
+    "supply_v": 5.0,
+    "r1_ohm": 1000.0,
+    "capacitance_f": 1e-07
+  },
+  "parser": "builtin",
+  "diagram_style": "proteus",
+  "components": [
+    {
+      "ref": "V1",
+      "type": "V",
+      "value": 5.0,
+      "unit": "V",
+      "pins": {
+        "+": "IN",
+        "-": "0"
+      }
+    },
+    {
+      "ref": "R1",
+      "type": "R",
+      "value": 1000.0,
+      "unit": "ohm",
+      "pins": {
+        "1": "IN",
+        "2": "OUT"
+      }
+    },
+    {
+      "ref": "C1",
+      "type": "C",
+      "value": 1e-07,
+      "unit": "F",
+      "pins": {
+        "1": "OUT",
+        "2": "0"
+      }
+    }
+  ],
+  "calculations": {
+    "cutoff_hz": 1591.5494309189537,
+    "time_constant_s": 9.999999999999999e-05,
+    "resistor_power_w": 0.025,
+    "r1_suggested_rating_w": 0.25
+  },
+  "validation": {
+    "status": "template_checks_passed",
+    "connectivity_checked": true,
+    "simulation": "not_run",
+    "hardware_verified": false,
+    "prompt_interpretation_requires_review": false
+  },
+  "assumptions": [
+    "Nominal ideal components; no tolerance or temperature sweep.",
+    "No physical circuit testing or SPICE simulation has been performed.",
+    "Ideal voltage source, unloaded output; supply_v is the DC/step input level. Resistor power is the initial step peak."
+  ],
+  "spice_netlist": "* Circuit API nominal ideal circuit; not yet simulated\nV1 IN 0 DC 5 AC 1\nR1 IN OUT 1000\nC1 OUT 0 1e-07\n.op\n.ac dec 20 1 1e7\n.end\n",
+  "image": {
+    "mime_type": "image/svg+xml",
+    "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"800\" height=\"500\" viewBox=\"0 0 800 500\" role=\"img\" aria-labelledby=\"title desc\">\n<title id=\"title\">Circuit AI electrical schematic</title>\n<desc id=\"desc\">DC source V1 feeds R1 and the output node. The load connects OUT to ground.</desc>\n<defs>\n<pattern id=\"minor\" width=\"10\" height=\"10\" patternUnits=\"userSpaceOnUse\"><path d=\"M 10 0 H 0 V 10\" fill=\"none\" stroke=\"#c9c9b3\" stroke-width=\"0.45\"/></pattern>\n<pattern id=\"grid\" width=\"50\" height=\"50\" patternUnits=\"userSpaceOnUse\"><rect width=\"50\" height=\"50\" fill=\"url(#minor)\"/><path d=\"M 50 0 H 0 V 50\" fill=\"none\" stroke=\"#b1b39b\" stroke-width=\"0.8\"/></pattern>\n</defs>\n<rect width=\"800\" height=\"500\" fill=\"#eeeedb\"/><rect width=\"800\" height=\"500\" fill=\"url(#grid)\"/>\n<style>text{font-family:DejaVu Sans,sans-serif;fill:#343a2c;font-size:15px}.pin{font-size:11px;fill:#7b493d}.wire{stroke:#285b36;stroke-width:2;fill:none;stroke-linejoin:round}.symbol{stroke:#874d3d;stroke-width:2;fill:none}.junction{fill:#285b36}</style>\n<text x=\"30\" y=\"35\" class=\"\">CIRCUIT AI / ELECTRICAL SCHEMATIC</text>\n<path class=\"wire\" d=\"M 170 220 V 150 H 310\" data-net=\"IN\"/>\n<path class=\"wire\" d=\"M 410 150 H 520 V 240 M 520 150 H 650\" data-net=\"OUT\"/>\n<path class=\"wire\" d=\"M 170 280 V 360 H 520 V 300 M 520 360 V 390\" data-net=\"0\"/>\n<circle class=\"symbol\" cx=\"170\" cy=\"250\" r=\"30\"/>\n<path class=\"symbol\" d=\"M 163 237 H 177 M 170 230 V 244 M 163 263 H 177\" />\n<path class=\"symbol\" d=\"M 310 150 H 330 M 390 150 H 410\" />\n<rect class=\"symbol\" x=\"330\" y=\"139\" width=\"60\" height=\"22\"/>\n<text x=\"330\" y=\"112\" class=\"\">R1</text>\n<text x=\"330\" y=\"132\" class=\"\">1 k\u03a9</text>\n<text x=\"312\" y=\"175\" class=\"pin\">1</text>\n<text x=\"401\" y=\"175\" class=\"pin\">2</text>\n<text x=\"65\" y=\"242\" class=\"\">V1</text>\n<text x=\"65\" y=\"264\" class=\"\">5 V</text>\n<text x=\"182\" y=\"214\" class=\"pin\">+</text>\n<text x=\"182\" y=\"298\" class=\"pin\">\u2212</text>\n<text x=\"185\" y=\"140\" class=\"\">IN</text>\n<text x=\"660\" y=\"155\" class=\"\">OUT</text>\n<path class=\"symbol\" d=\"M 520 240 V 263 M 502 263 H 538 M 502 277 H 538 M 520 277 V 300\" />\n<text x=\"580\" y=\"262\" class=\"\">C1</text>\n<text x=\"580\" y=\"285\" class=\"\">100 nF</text>\n<text x=\"497\" y=\"235\" class=\"pin\">1</text>\n<text x=\"497\" y=\"318\" class=\"pin\">2</text>\n<circle class=\"junction\" cx=\"520\" cy=\"150\" r=\"4\"/>\n<circle class=\"junction\" cx=\"520\" cy=\"360\" r=\"4\"/>\n<circle cx=\"650\" cy=\"150\" r=\"4\" stroke=\"#285b36\" fill=\"#eeeedb\" stroke-width=\"2\"/>\n<path class=\"wire\" d=\"M 506 390 H 534 M 511 396 H 529 M 516 402 H 524\" />\n<text x=\"545\" y=\"397\" class=\"\">GND (0)</text>\n<text x=\"30\" y=\"455\" class=\"\">Nominal component values \u2022 Template connectivity checked</text>\n<text x=\"30\" y=\"479\" class=\"\">Proteus-inspired drawing \u2022 Not simulated \u2022 Not a native Proteus file</text>\n</svg>"
+  }
+}

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500" role="img" aria-labelledby="title desc">
+<title id="title">Circuit AI electrical schematic</title>
+<desc id="desc">DC source V1 feeds R1 and the output node. The load connects OUT to ground.</desc>
+<defs>
+<pattern id="minor" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 H 0 V 10" fill="none" stroke="#c9c9b3" stroke-width="0.45"/></pattern>
+<pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><rect width="50" height="50" fill="url(#minor)"/><path d="M 50 0 H 0 V 50" fill="none" stroke="#b1b39b" stroke-width="0.8"/></pattern>
+</defs>
+<rect width="800" height="500" fill="#eeeedb"/><rect width="800" height="500" fill="url(#grid)"/>
+<style>text{font-family:DejaVu Sans,sans-serif;fill:#343a2c;font-size:15px}.pin{font-size:11px;fill:#7b493d}.wire{stroke:#285b36;stroke-width:2;fill:none;stroke-linejoin:round}.symbol{stroke:#874d3d;stroke-width:2;fill:none}.junction{fill:#285b36}</style>
+<text x="30" y="35" class="">CIRCUIT AI / ELECTRICAL SCHEMATIC</text>
+<path class="wire" d="M 170 220 V 150 H 310" data-net="IN"/>
+<path class="wire" d="M 410 150 H 520 V 240 M 520 150 H 650" data-net="OUT"/>
+<path class="wire" d="M 170 280 V 360 H 520 V 300 M 520 360 V 390" data-net="0"/>
+<circle class="symbol" cx="170" cy="250" r="30"/>
+<path class="symbol" d="M 163 237 H 177 M 170 230 V 244 M 163 263 H 177" />
+<path class="symbol" d="M 310 150 H 330 M 390 150 H 410" />
+<rect class="symbol" x="330" y="139" width="60" height="22"/>
+<text x="330" y="112" class="">R1</text>
+<text x="330" y="132" class="">10 kΩ</text>
+<text x="312" y="175" class="pin">1</text>
+<text x="401" y="175" class="pin">2</text>
+<text x="65" y="242" class="">V1</text>
+<text x="65" y="264" class="">5 V</text>
+<text x="182" y="214" class="pin">+</text>
+<text x="182" y="298" class="pin">−</text>
+<text x="185" y="140" class="">IN</text>
+<text x="660" y="155" class="">OUT</text>
+<path class="symbol" d="M 520 240 V 248 M 520 292 V 300" />
+<rect class="symbol" x="509" y="248" width="22" height="44"/>
+<text x="580" y="262" class="">R2</text>
+<text x="580" y="285" class="">10 kΩ</text>
+<text x="497" y="235" class="pin">1</text>
+<text x="497" y="318" class="pin">2</text>
+<circle class="junction" cx="520" cy="150" r="4"/>
+<circle class="junction" cx="520" cy="360" r="4"/>
+<circle cx="650" cy="150" r="4" stroke="#285b36" fill="#eeeedb" stroke-width="2"/>
+<path class="wire" d="M 506 390 H 534 M 511 396 H 529 M 516 402 H 524" />
+<text x="545" y="397" class="">GND (0)</text>
+<text x="30" y="455" class="">Nominal component values • Template connectivity checked</text>
+<text x="30" y="479" class="">Proteus-inspired drawing • Not simulated • Not a native Proteus file</text>
+</svg>
