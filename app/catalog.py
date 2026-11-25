@@ -26,8 +26,8 @@ LCD_LABELS = dict(zip(map(str,range(1,17)), ['VSS','VDD','VO','RS','RW','E','D0'
 
 # Additional logical interfaces; package-specific ratings require datasheet review.
 CATALOG.update({
- 'ldr': part('Photoresistor (LDR)', 'resistor', {'1':'passive','2':'passive'}, ('1','2')),
- 'thermistor': part('Generic thermistor', 'resistor', {'1':'passive','2':'passive'}, ('1','2')),
+ 'ldr': part('Photoresistor (LDR)', 'ldr', {'1':'passive','2':'passive'}, ('1','2')),
+ 'thermistor': part('Generic thermistor', 'thermistor', {'1':'passive','2':'passive'}, ('1','2')),
  'connector3': part('Three-pin connector', 'connector', {'1':'passive','2':'passive','3':'passive'}),
  'connector4': part('Four-pin connector', 'connector', {str(i):'passive' for i in range(1,5)}),
  'arduino_mega': part('Arduino Mega 2560 Rev3 (logical headers)', 'controller',
