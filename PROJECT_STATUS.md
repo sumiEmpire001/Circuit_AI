@@ -26,6 +26,15 @@ Verification passed 118 backend tests and 260 of 260 net checks across 26 author
 
 Example: *Design a voltage divider. Use a 12 V source. The upper resistor is 33 kohm. The lower resistor is 10 kohm. Calculate the nominal output voltage.*
 
+## Target-based passive sizing
+
+Local mode can solve one missing resistor in an unloaded divider, or one missing resistor or capacitor in a first-order RC low-pass. It requires the source voltage, a target and exactly one passive value. Studio identifies the calculated part and displays the nominal result. Targets outside the topology's range and requests for additional constraints require clarification.
+
+- Divider example — *Design a voltage divider. Use a 12 V source. The upper resistor is 33 kohm. Target an output of 3.3 V.*
+- Filter example — *Create a first-order RC low-pass filter. Use 5 V at the input. The shunt capacitor is 100 nF. Target a cutoff of 1 kHz.*
+
+Verification passed 130 backend tests and 266 of 266 strict net checks across 28 authored Chromium submissions, with zero unintended contacts and label-only nets. Browser editing, import, export and mobile checks passed. The two target schematics had no unrelated crossings, but both used a long wire detour on OUT. The unchanged published pilot returned zero exact free-form interpretations out of four and routed all 15 reference nets. The model and corpus remain at the CircuitLM 0.5 checkpoint.
+
 ## Open acceptance work
 
 The authored suite includes reviewed prompts and a small set of unfamiliar pin-explicit designs. Effects such as component substitutions, ambitious functional requirements, real operation, and arbitrary pinout coverage need separate verification. The 98% target requires a frozen, diverse external holdout and independent scoring. Native schematic ERC and simulation have yet to run. The ADC still has crossings and packed text near the interfaces, and many devices remain functional blocks.

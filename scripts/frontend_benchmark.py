@@ -37,6 +37,12 @@ CASES += [
     ('role_filter','local',
      'Make a first-order RC low-pass filter; the shunt capacitor CX is 47 nF; '
      'use 5 V at the input; the series resistor RX is 2.2 kΩ.',3,3),
+    ('target_divider','local',
+     'Design a voltage divider. Use a 12 V source. The upper resistor is 33 kohm. '
+     'Target an output of 3.3 V.',3,3),
+    ('target_filter','local',
+     'Create a first-order RC low-pass filter. Use 5 V at the input. The shunt capacitor is 100 nF. '
+     'Target a cutoff of 1 kHz.',3,3),
     ('pin_prose_joins','local',
      'V1 is a 5 V DC source. R1 is a 330 ohm resistor. D1 is a red LED. '
      'Join V1 positive and R1.1. Connect R1.2 to D1.A on net N1. '
@@ -107,6 +113,10 @@ def main():
                 assert 'Output 2.791 V' in page.locator('#calculations').inner_text()
             if label=='role_filter':
                 assert 'Cutoff 1539 Hz' in page.locator('#calculations').inner_text()
+            if label in {'target_divider','target_filter'}:
+                display = 'Output 3.300 V' if label=='target_divider' else 'Cutoff 1000 Hz'
+                assert display in page.locator('#calculations').inner_text()
+                assert 'calculated nominal value' in page.locator('#validation').inner_text()
             if label=='rc_calculation':
                 assert '1592 Hz' in page.locator('#calculations').inner_text()
             page.locator('#canvas').screenshot(path=str(out/(label+'.png')))

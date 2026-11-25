@@ -54,3 +54,47 @@ def test_parameterized_topology_intent(prompt,values,expected_pins,kind,quantity
 ])
 def test_passive_intents_reject_missing_values_and_extra_constraints(prompt):
     assert client.post('/v2/draft',json={'parser':'local','prompt':prompt}).status_code==422
+
+
+DIVIDER_TARGET = 'Design a voltage divider. Use a 12 V source. Target an output of 3.3 V.'
+FILTER_TARGET = 'Create a first-order RC low-pass filter. Use 5 V at the input. Target a cutoff of 1 kHz.'
+
+
+@pytest.mark.parametrize('prompt,supplied,solved,quantity,target,series,shunt', [
+    (DIVIDER_TARGET+' The upper resistor is 33 kohm.', '33 kohm', '12.51724138 kohm',
+     'output_v', 3.3, 'R1', 'R2'),
+    (DIVIDER_TARGET+' The lower resistor R1 is 11 kohm.', '11 kohm', '29 kohm',
+     'output_v', 3.3, 'R2', 'R1'),
+    (FILTER_TARGET+' The shunt capacitor is 100 nF.', '100 nF', '1.591549431 kohm',
+     'cutoff_hz', 1000, 'R1', 'C1'),
+    (FILTER_TARGET+' The series resistor is 10 kohm.', '10 kohm', '15.91549431 nF',
+     'cutoff_hz', 1000, 'R1', 'C1'),
+])
+def test_passive_target_solves_missing_part(prompt,supplied,solved,quantity,target,series,shunt):
+    response = client.post('/v2/draft', json={'parser':'local','prompt':prompt})
+    assert response.status_code==200,response.text
+    body = response.json()
+    assert not body['validation']['errors']
+    assert {c['value'] for c in body['design']['components']} >= {supplied,solved}
+    assert {n['name']:set(n['pins']) for n in body['design']['nets']} == {
+        'INPUT': {'V1.+',f'{series}.1'},
+        'OUT': {f'{series}.2',f'{shunt}.1'},
+        'RETURN': {f'{shunt}.2','V1.-'},
+    }
+    assert set(body['routing_audit']['continuous_nets']) == {'INPUT','OUT','RETURN'}
+    assert any('calculated nominal value' in note for note in body['design']['notes'])
+    assert body['calculations'][0][quantity] == pytest.approx(target,rel=1e-8)
+
+
+@pytest.mark.parametrize('prompt', [
+    DIVIDER_TARGET,
+    DIVIDER_TARGET+' The upper resistor is 33 kohm. The lower resistor is 10 kohm.',
+    DIVIDER_TARGET.replace('3.3 V','12 V')+' The upper resistor is 33 kohm.',
+    DIVIDER_TARGET.replace('3.3 V','13 V')+' The upper resistor is 33 kohm.',
+    DIVIDER_TARGET+' The upper resistor is 33 kohm. Target an output of 5 V.',
+    DIVIDER_TARGET+' The upper resistor is 33 kohm. Add a 1 kohm load.',
+    FILTER_TARGET.replace('1 kHz','0 Hz')+' The shunt capacitor is 100 nF.',
+    FILTER_TARGET.replace('1 kHz','1 V')+' The shunt capacitor is 100 nF.',
+])
+def test_passive_target_rejects_invalid_or_incomplete_specification(prompt):
+    assert client.post('/v2/draft',json={'parser':'local','prompt':prompt}).status_code==422
