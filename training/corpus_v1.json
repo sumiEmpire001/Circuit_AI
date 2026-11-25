@@ -33,7 +33,12 @@
     "two pole passive rc network",
     "double rc smoothing filter",
     "two stage passive rc ladder",
-    "cascaded rc low pass stages"
+    "cascaded rc low pass stages",
+    "design a two stage passive rc low pass filter with a 5 volt dc source two resistors and two capacitors",
+    "connect the positive supply to the first resistor then connect the midpoint to the second resistor and first capacitor",
+    "five component rc ladder with both capacitors connected to common ground",
+    "generate a schematic of two cascaded resistor capacitor stages with shared ground and output at the second stage",
+    "draw a 5v dc source 1 kohm resistor 2.2 kohm resistor and two 100 nf capacitors as a two stage rc filter"
   ],
   "unsupported": [
     "esp32 wifi sensor",
