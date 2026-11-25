@@ -59,3 +59,30 @@ def bridge_rectifier():
         dict(name='DC_NEG',pins=['D1.A','D3.A','C1.1','J2.2'])],
         notes=['Topology transcribed from user reference image 1. Use isolated low-voltage AC only. Verify diode and capacitor ratings. 100 nF is a bypass capacitor, not necessarily adequate for bulk smoothing. No simulation or hardware verification.'])
 EXAMPLES['bridge_rectifier']=bridge_rectifier
+
+def temperature_motor():
+    # New low-voltage design inspired by user image 9, not a literal copy.
+    return Design(title='Arduino temperature-controlled motor draft',components=[
+        dict(ref='U1',part='arduino_uno',value='Uno R3 / USB power'),
+        dict(ref='U2',part='l293d',value='L293D motor driver'),
+        dict(ref='S1',part='lm35',value='LM35 temperature sensor'),
+        dict(ref='M1',part='dc_motor',value='6 V motor; verify stall current'),
+        dict(ref='V1',part='dc_source',value='5 V'),
+        dict(ref='V2',part='dc_source',value='6 V'),
+        dict(ref='C1',part='capacitor',value='100 nF'),
+        dict(ref='C2',part='capacitor',value='100 nF')],
+        nets=[
+            dict(name='LOGIC_5V',pins=['V1.+','U1.5V','U2.VCC1','S1.VS','C1.1']),
+            dict(name='MOTOR_6V',pins=['V2.+','U2.VCC2','C2.1']),
+            dict(name='GND',pins=['V1.-','V2.-','U1.GND','U2.GND1','U2.GND2','U2.GND3','U2.GND4','U2.EN34','U2.IN3','U2.IN4','S1.GND','C1.2','C2.2']),
+            dict(name='TEMP',pins=['S1.VOUT','U1.A0']),
+            dict(name='PWM',pins=['U1.D9','U2.EN12']),
+            dict(name='DIR1',pins=['U1.D7','U2.IN1']),
+            dict(name='DIR2',pins=['U1.D8','U2.IN2']),
+            dict(name='MOTOR_A',pins=['U2.OUT1','M1.+']),
+            dict(name='MOTOR_B',pins=['U2.OUT2','M1.-'])],
+        notes=['Low-voltage draft inspired by the temperature-controlled fan reference; uses Arduino instead of AT89C51 and ADC0804.',
+               'V1 represents USB-derived board power. Do not parallel a second 5 V supply with USB. V2 is an independent regulated motor supply; common ground.',
+               'Verify motor stall current, driver voltage drop, thermal limits and bulk supply decoupling. L293D has internal clamp diodes; verify the exact device.',
+               'Firmware must drive D9 PWM and D7/D8 direction. Not simulated or hardware verified.'])
+EXAMPLES['temperature_motor']=temperature_motor
