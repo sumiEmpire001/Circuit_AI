@@ -29,6 +29,7 @@ def classify(prompt):
 
 
 def draft_local(prompt, previous_design=None):
+    from app.constraint_parser import matches_constraint_prompt, parse_constraints
     from app.design_examples import EXAMPLES
     from app.image_reference import LCD_PROMPTS
     if previous_design is not None:
@@ -49,10 +50,13 @@ def draft_local(prompt, previous_design=None):
                 component['value'] = value
                 return Design.model_validate(data)
         raise ValueError('Unknown component reference.')
+    if matches_constraint_prompt(prompt):
+        return parse_constraints(prompt)
     label = classify(prompt)
     # Classifier alone cannot prove that every constraint is supported.
     # Only exact reviewed aliases are accepted until constraint extraction is trained.
     approved = {
+        'ne555_astable': {'make an ne555p astable timer', 'ne555p free running oscillator'},
         'at89c51_lcd': {' '.join(tokens(alias)) for alias in LCD_PROMPTS},
         'bridge_rectifier': {'four diode bridge rectifier', "create a full wave bridge rectifier using four 1n4007 diodes d1 d2 d3 d4 a 100 nf capacitor c1 a two pin isolated low voltage ac input j1 and a two pin dc output j2 connect j1 pin 1 to d1 cathode and d2 anode j1 pin 2 to d3 cathode and d4 anode d2 and d4 cathodes to positive output j2 pin 1 and c1 pin 2 and d1 and d3 anodes to negative output j2 pin 2 and c1 pin 1"},
         'temperature_motor': {
@@ -72,5 +76,5 @@ def draft_local(prompt, previous_design=None):
     }
     normalized = ' '.join(tokens(prompt))
     if normalized not in approved.get(label, set()):
-        raise ValueError('Request needs clarification. Try a reviewed circuit example from Studio, or use explicit component and net input for other designs.')
+        raise ValueError('Request needs clarification. Try a reviewed circuit example from Studio, or use the pin-level prose format in Studio.')
     return EXAMPLES[label]()

@@ -40,7 +40,7 @@ def render_repaired(design,validation):
                 score=(len(audit['continuous_nets']),len(route_names(svg)),0,0,-audit['undotted_crossings'],-size[1])
                 if best is None or score>best[0]:
                     best=(score,svg,boxes,size,audit,[],0)
-            if best is not None and best[0][0]==len(nets):
+            if best is not None and best[0][0]==len(nets) and best[4]['undotted_crossings']==0:
                 break
     for order in orders[:1] if grid is not None else orders:
         if best is not None and best[0][0]==len(nets) and best[0][1]==len(nets): break

@@ -109,6 +109,10 @@ def check_design(design):
         for r,p,role,s in info:
             if role=='power_in' and not sources:
                 issue(n.name,'unverified_supply',f'{r}.{p}: supply voltage is not directly traceable to a DC source')
+            if role=='power_in' and (limits := s.get('supply_range')):
+                low, high = limits
+                if any(v is not None and not low<=v<=high for v in sources):
+                    issue(n.name,'voltage_mismatch',f'{r}.{p} requires {low:g}–{high:g} V',True)
             if role=='power_in' and s.get('voltage') and sources:
                 if any(v is not None and abs(v-s['voltage'])>0.1 for v in sources): issue(n.name,'voltage_mismatch',f'{r} requires {s["voltage"]:g} V on this power pin',True)
     seen=set(); groups=[]

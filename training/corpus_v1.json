@@ -320,5 +320,19 @@
     "at89c51 clock and power rails beside the lcd wiring",
     "atmel 8051 full parallel byte interface to a hitachi lm016l",
     "connect 8051 p1 0 through p1 7 to a 14 pin lm016l"
+  ],
+  "ne555_astable": [
+    "make an ne555p astable timer",
+    "ne555p free running oscillator",
+    "use a bipolar 555 timer as a self triggering square wave oscillator",
+    "astable mode using ne555p threshold and trigger tied together",
+    "draw a 555 astable square wave source with two timing resistors",
+    "ne555p timer with an rc network between discharge and threshold",
+    "draw the ti astable application circuit using a five volt supply",
+    "free running 555p multivibrator with a timing capacitor",
+    "add a grounded control bypass capacitor to an ne555p astable circuit",
+    "show a ne555p pulse generator with reset held high",
+    "pdip8 ne555p oscillator circuit with two resistors and a capacitor",
+    "one 555 timer in astable mode with a square wave output"
   ]
 }

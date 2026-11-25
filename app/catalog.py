@@ -105,3 +105,24 @@ CATALOG.update({
         pin_labels={str(i):LCD_LABELS[str(i)] for i in range(1,15)}),
     'crystal': part('Quartz crystal', 'crystal', {'1':'passive','2':'passive'}, ('1','2')),
 })
+
+# Texas Instruments through-hole packages. Pin labels are physical-package names.
+CATALOG.update({
+    'ne555p': dict(part(
+        'NE555P precision timer (PDIP-8)', 'custom',
+        {'1':'ground','2':'input','3':'output','4':'input',
+         '5':'bidirectional','6':'input','7':'passive','8':'power_in'},
+        ('1','2','4','6','8'), source='https://www.ti.com/lit/ds/symlink/ne555.pdf'),
+        pin_labels=dict(zip(map(str,range(1,9)),
+            ('GND','TRIG','OUT','RESET','CONT','THRES','DISCH','VCC'))),
+        supply_range=(4.5,16.0)),
+    'lm324n': dict(part(
+        'LM324N quad op amp (PDIP-14)', 'custom',
+        {str(i):role for i,role in enumerate((
+            'output','input','input','power_in','input','input','output',
+            'output','input','input','passive','input','input','output',
+        ),1)}, ('4','11'), source='https://www.ti.com/lit/ds/symlink/lm324.pdf'),
+        pin_labels=dict(zip(map(str,range(1,15)),
+            ('OUT1','IN1-','IN1+','VCC+','IN2+','IN2-','OUT2',
+             'OUT3','IN3-','IN3+','VCC-','IN4+','IN4-','OUT4')))),
+})

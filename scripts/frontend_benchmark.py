@@ -18,7 +18,15 @@ CASES=[
 FIXTURES = json.loads(Path(__file__).with_name('frontend_netlists.json').read_text())
 IMAGE_PROMPT = json.loads((Path(__file__).resolve().parents[1] / 'training/corpus_v1.json').read_text())['at89c51_lcd'][1]
 REFERENCE_CASES = {'rc_long':'rc', 'bridge_long':'bridge', 'temperature_motor_local':'temperature_motor'}
+PIN_PROSE = (
+    'Title: Twin RC outputs. Use a 5 V DC source named V1, a 4.7 kΩ resistor named R4, '
+    'and a 10 kohm resistor named R5. Use a 100 nF capacitor named C4 and a 220 nF capacitor named C5. '
+    'Connect V1 positive, R4.1 and R5 pin 1 on net POWER. Connect R4 pin 2 to C4 pin 1 on net FAST. '
+    'Connect R5 pin 2 to C5 pin 1 on net SLOW. Connect V1 negative, C4.2, and C5.2 on net RETURN.'
+)
 CASES += [
+    ('pin_prose_novel','local',PIN_PROSE,5,4),
+    ('ne555_astable','local','Make an NE555P astable timer.',8,6),
     ('at89c51_lcd','local',IMAGE_PROMPT,9,16),
     ('temperature_motor_local','local','Control a 6V DC motor using an Arduino Uno, LM35 temperature sensor and L293D driver.',8,9),
     ('ldr','local','Arduino Mega with an LDR light sensor',4,3),

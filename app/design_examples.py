@@ -108,3 +108,33 @@ def schmitt_inverter():
 EXAMPLES['schmitt_inverter']=schmitt_inverter
 
 EXAMPLES['at89c51_lcd']=at89c51_lcd
+
+
+def ne555_astable():
+    parts = [
+        ('V1','dc_source','5 V'), ('U1','ne555p','NE555P'),
+        ('R1','resistor','10 kohm'), ('R2','resistor','47 kohm'),
+        ('C1','capacitor','100 nF'), ('C2','capacitor','10 nF'),
+        ('C3','capacitor','100 nF'), ('J1','connector2','Output'),
+    ]
+    positions = {
+        'V1': (680,125), 'U1': (680,450), 'R1': (210,450), 'R2': (210,650),
+        'C1': (210,850), 'C2': (680,810), 'C3': (1260,165), 'J1': (1260,450),
+    }
+    nets = {
+        'VCC': ['V1.+','U1.8','U1.4','R1.1','C3.1'],
+        'GND': ['V1.-','U1.1','C1.2','C2.2','C3.2','J1.2'],
+        'DISCHARGE': ['R1.2','R2.1','U1.7'],
+        'TIMING': ['R2.2','C1.1','U1.2','U1.6'],
+        'CONTROL': ['U1.5','C2.1'],
+        'OUT': ['U1.3','J1.1'],
+    }
+    return Design(title='NE555P astable timer',
+                  components=[dict(ref=ref,part=part,value=value,
+                                   position=dict(zip(('x','y'),positions[ref])))
+                              for ref,part,value in parts],
+                  nets=[dict(name=name,pins=pins) for name,pins in nets.items()],
+                  notes=['Astable connection follows TI NE555 Figure 6-5. Component values are example choices. Circuit has not been simulated.'])
+
+
+EXAMPLES['ne555_astable'] = ne555_astable
