@@ -1,0 +1,50 @@
+{
+  "controller_lcd": [
+    "arduino uno with a 16x2 lcd",
+    "connect uno to parallel lcd",
+    "wire an hd44780 display to arduino uno",
+    "uno character display wiring",
+    "arduino uno lcd screen circuit",
+    "16x2 parallel display on uno",
+    "show text on uno lcd",
+    "liquidcrystal uno schematic",
+    "uno lcd1602 connection",
+    "arduino uno parallel character lcd"
+  ],
+  "led_bank": [
+    "four channel led bank",
+    "parallel led indicator bank",
+    "multiple leds with individual resistors",
+    "led array circuit",
+    "build a bank of leds",
+    "separate resistor for each led",
+    "multi channel led lights",
+    "led bank schematic",
+    "led bank with independent resistors",
+    "multiple led indicator channels"
+  ],
+  "rc_ladder": [
+    "two stage rc filter",
+    "cascade two resistor capacitor filters",
+    "passive rc ladder",
+    "two section low pass filter",
+    "two cascaded rc sections",
+    "resistor capacitor ladder circuit",
+    "two pole passive rc network",
+    "double rc smoothing filter",
+    "two stage passive rc ladder",
+    "cascaded rc low pass stages"
+  ],
+  "unsupported": [
+    "esp32 wifi sensor",
+    "arduino mega servo motor",
+    "mains inverter",
+    "555 timer oscillator",
+    "op amp amplifier",
+    "battery charger",
+    "motor speed controller",
+    "radio transmitter",
+    "raspberry pi camera",
+    "buck converter regulator"
+  ]
+}
