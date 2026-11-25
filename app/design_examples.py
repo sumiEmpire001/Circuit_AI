@@ -35,3 +35,13 @@ def mega_ldr():
         notes=['V1 represents the board USB-derived 5 V rail, not an additional supply.',
                'Select divider resistance for the actual LDR and light range. Not physically verified.'])
 EXAMPLES['mega_ldr']=mega_ldr
+
+def mega_ldr_servo():
+    d=mega_ldr().model_dump()
+    d['title']='Mega LDR and separately powered RC servo'
+    d['components'] += [dict(ref='V2',part='dc_source',value='5 V'),dict(ref='M1',part='servo_generic',value='5 V compatible servo; verify rating')]
+    next(n for n in d['nets'] if n['name']=='GND')['pins'] += ['V2.-','M1.GND']
+    d['nets'] += [dict(name='SERVO_PWR',pins=['V2.+','M1.VCC']),dict(name='SERVO_SIG',pins=['U1.D9','M1.SIG'])]
+    d['notes'] += ['Use a separate regulated supply sized for servo stall current; verify servo accepts 5 V and Mega logic. Grounds are common; positive rails are separate. Firmware is not generated.']
+    return Design.model_validate(d)
+EXAMPLES['mega_ldr_servo']=mega_ldr_servo
