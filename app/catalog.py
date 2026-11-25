@@ -52,3 +52,13 @@ CATALOG.update({
  'dc_motor': part('Brushed DC motor (rating required)','custom',{'+':'passive','-':'passive'},('+','-')),
  'fuse': part('Fuse (rating required)','custom',{'1':'passive','2':'passive'},('1','2')),
 })
+
+# Manufacturer-documented logical interfaces. Physical package mapping is separate.
+CATALOG.update({
+ 'uln2003a': part('ULN2003A seven-channel sink driver','custom',
+     {**{f'IN{i}':'input' for i in range(1,8)},'E':'ground',**{f'OUT{i}':'passive' for i in range(1,8)},'COM':'passive'},('E',),source='https://www.ti.com/product/ULN2003A'),
+ 'l293d': part('L293D quadruple half-H driver','custom',
+     {'EN12':'input','IN1':'input','OUT1':'output','GND1':'ground','GND2':'ground','OUT2':'output','IN2':'input','VCC2':'power_in','EN34':'input','IN3':'input','OUT3':'output','GND3':'ground','GND4':'ground','OUT4':'output','IN4':'input','VCC1':'power_in'},('EN12','EN34','GND1','GND2','GND3','GND4','VCC1','VCC2'),source='https://www.ti.com/product/L293D'),
+ 'lm35': part('LM35 analog temperature sensor','custom',
+     {'VS':'power_in','VOUT':'output','GND':'ground'},('VS','VOUT','GND'),source='https://www.ti.com/product/LM35'),
+})
