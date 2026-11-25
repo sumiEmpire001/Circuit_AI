@@ -59,6 +59,10 @@ def layout(design):
     catalog=design.catalog(); boxes={}; points={}
     cols=min(2 if len(design.components)<=12 else 3,len(design.components))
     row_tops={0:130}
+    nets_by_pin={pin:net for net in design.nets for pin in net.pins}
+    adc_interrupts={f'{c.ref}.5' for c in design.components if c.part=='adc0804lcn'}
+    adc_ports={pin for terminal in adc_interrupts if terminal in nets_by_pin
+               for pin in nets_by_pin[terminal].pins}
     compact=bank_placement(design) or signal_placement(design,catalog)
     # Recognize the actual series-loop topology rather than the prompt title.
     bypart={c.part:c.ref for c in design.components}
@@ -76,6 +80,13 @@ def layout(design):
         if c.part=='arduino_uno':
             left=['5V','GND']+[f'A{i}' for i in range(6)]
             right=['D12','D11','D5','D4','D3','D2']+[f'D{i}' for i in [0,1,6,7,8,9,10,13]]
+        elif c.part=='at89c51_pdip40' and f'{c.ref}.12' in adc_ports:
+            right=[*map(str,range(21,29)),'17','16','12',*map(str,range(1,9))]
+            left=[p for p in ['40','19','18','9','31','20',*pins] if p not in right]
+            left=list(dict.fromkeys(left))
+        elif c.part=='adc0804lcn':
+            left=[*map(str,range(18,10,-1)),'2','3','5']
+            right=['6','7','4','19','9','1','8','10','20']
         elif c.part=='at89c51_pdip40':
             left=['40','19','18','9','31','20','29','30',*map(str,range(32,40)),*map(str,range(10,18))]
             right=[*map(str,range(1,9)),'22','23','21',*map(str,range(24,29))]
@@ -104,7 +115,17 @@ def layout(design):
                 points[f'{c.ref}.{pin}']=(x-28 if side=='left' else x+w+28,y+(118 if spec['symbol']=='lcd' else 70)+i*22,side)
     # Swap the entire glyph and its two endpoints when the neighboring nets
     # predominantly approach from the opposite sides.
-    nets_by_pin={pin:net for net in design.nets for pin in net.pins}
+    for c in design.components:
+        output=nets_by_pin.get(f'{c.ref}.VOUT')
+        if c.part!='lm35' or output is None:
+            continue
+        x,_,w,_=boxes[c.ref]
+        sinks={terminal.split('.')[0] for terminal in output.pins if not terminal.startswith(c.ref+'.')}
+        if sinks and all(boxes[ref][0]+boxes[ref][2]<x for ref in sinks):
+            for pin in catalog[c.part]['pins']:
+                qualified=f'{c.ref}.{pin}'
+                px,py,side=points[qualified]
+                points[qualified]=(2*x+w-px,py,'right' if side=='left' else 'left')
     for c in design.components:
         pins=list(catalog[c.part]['pins'])
         if len(pins)!=2:
@@ -135,8 +156,8 @@ def render_design(design,validation,route_order=None):
 <text x="30" y="54">DRAFT • {len(validation['errors'])} ERC errors • Not simulated • Matching net labels are connected; crossings without junction dots are not connected</text>''']
     def line(d,cls='symbol',attrs=''):
         parts.append(f'<path d="{d}" class="{cls}" {attrs}/>')
-    def text(x,y,s,cls='',anchor='start'):
-        parts.append(f'<text x="{x}" y="{y}" class="{cls}" text-anchor="{anchor}">{escape(str(s))}</text>')
+    def text(x,y,s,cls='',anchor='start',attrs=''):
+        parts.append(f'<text x="{x}" y="{y}" class="{cls}" text-anchor="{anchor}" {attrs}>{escape(str(s))}</text>')
     # Route each net on its own horizontal bus below all component bodies.
     # Vertical branches use unique x tracks; crossings are explicitly not junctions.
     # A branch is omitted if its escape corridor would intersect another body.
@@ -258,7 +279,7 @@ def render_design(design,validation,route_order=None):
             label=pin+(' '+LCD_LABELS[pin] if c.part=='lcd1602' else ' '+spec['pin_labels'][pin] if spec.get('pin_labels') else '')
             text(edge+5 if left else edge-5,py-5,label,'pin','start' if left else 'end')
             if net:
-                text(px-5 if left else px+5,py-5,net,'label','end' if left else 'start')
+                text(px-5 if left else px+5,py-5,net,'label','end' if left else 'start',f'data-label-net="{escape(net)}"')
                 parts.append(f'<circle cx="{px}" cy="{py}" r="2.7" fill="#285b36" data-pin="{c.ref}.{pin}" data-net="{net}"/>')
             else:
                 line(f'M {px-3} {py-3} l 6 6 M {px-3} {py+3} l 6 -6')

@@ -12,6 +12,22 @@ def route_names(svg):
 def remove_routes(svg,names):
     return re.sub(r'<(?:path|circle)\b[^>]*\bdata-(?:route|junction)-net="([^"]+)"[^>]*/>',lambda m:'' if unescape(m[1]) in names else m[0],svg)
 
+def compact_net_labels(svg, continuous):
+    """A physically complete wire needs one label. Preserve fallback labels."""
+    complete=set(continuous)
+    labeled=set()
+
+    def retain(match):
+        net=unescape(match[1])
+        if net in labeled:
+            return ''
+        if net in complete:
+            labeled.add(net)
+        return match[0]
+
+    return re.sub(r'<text\b[^>]*\bdata-label-net="([^"]+)"[^>]*>[^<]*</text>',retain,svg)
+
+
 AUDIT_SCOPE = ('Cross-net overlaps, endpoint contacts, junctions and visible pin-to-pin continuity. '
                'Undotted interior crossings are separate nets.')
 
@@ -29,7 +45,7 @@ def render_repaired(design,validation):
         attempts+=1
         if audit['passed'] and len(audit['continuous_nets'])==len(nets):
             audit.update(attempts=attempts,removed_routes=[],initial_conflicts=0,scope=AUDIT_SCOPE)
-            return svg,boxes,size,audit
+            return compact_net_labels(svg,audit['continuous_nets']),boxes,size,audit
     grid=route_grid(design,validation)
     if grid is not None:
         for allow_crossings,rails_first in ((False,False),(True,False),(True,True)):
@@ -65,4 +81,4 @@ def render_repaired(design,validation):
         if coverage==len(nets) and len(audit['continuous_nets'])==len(nets): break
     _,svg,boxes,size,audit,removed,initial=best
     audit.update(attempts=attempts,removed_routes=removed,initial_conflicts=initial,scope=AUDIT_SCOPE)
-    return svg,boxes,size,audit
+    return compact_net_labels(svg,audit['continuous_nets']),boxes,size,audit

@@ -122,5 +122,31 @@
     "TIMING": "R2.2 C1.1 U1.2 U1.6",
     "CONTROL": "U1.5 C2.1",
     "OUT": "U1.3 J1.1"
+  },
+  "image_adc": {
+    "VCC": "V1.+ U1.40 U1.31 C1.+ U2.20 U3.VS",
+    "GND": "V1.- U1.20 C2.2 C3.2 R1.2 U2.1 U2.7 U2.8 U2.10 U3.GND C4.2",
+    "RST": "U1.9 C1.- R1.1",
+    "XTAL1": "U1.19 X2.1 C2.1",
+    "XTAL2": "U1.18 X2.2 C3.1",
+    "ADC_RD": "U1.17 U2.2",
+    "ADC_WR": "U1.16 U2.3",
+    "ADC_INTR": "U2.5 U1.12",
+    "TEMP_ANALOG": "U3.VOUT U2.6",
+    "ADC_CLK_IN": "U2.4 R2.1 C4.1",
+    "ADC_CLK_R": "U2.19 R2.2",
+    "DB0": "U2.18 U1.21",
+    "DB1": "U2.17 U1.22",
+    "DB2": "U2.16 U1.23",
+    "DB3": "U2.15 U1.24",
+    "DB4": "U2.14 U1.25",
+    "DB5": "U2.13 U1.26",
+    "DB6": "U2.12 U1.27",
+    "DB7": "U2.11 U1.28"
+  },
+  "rc_calculation": {
+    "INPUT": "V1.+ R1.1",
+    "OUT": "R1.2 C1.1",
+    "RETURN": "V1.- C1.2"
   }
 }

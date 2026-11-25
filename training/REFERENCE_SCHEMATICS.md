@@ -23,3 +23,7 @@ The close-up identifies P1.0–P1.7 as LCD D0–D7, P2.1 as RS, P2.2 as EN, EA h
 The 12 MHz frequency and a contrast potentiometer are explicit design choices because the close-up does not establish a crystal frequency or a suitable adjustable contrast circuit. The two supply pins and the LCD pin map were checked against the [AT89C51 datasheet](https://ww1.microchip.com/downloads/en/DeviceDoc/doc0265.pdf) and [Hitachi display databook](https://www.bitsavers.org/components/hitachi/_dataBooks/1987_Hitachi_Liquid_Crystal_Display_Modules.pdf). The reference tests compare the actual render against a fixture separate from RouteGuard.
 
 The reviewed long prompt is recorded in [image_reference.py](../app/image_reference.py). The other schematics inform block placement, polarity, labels and junction conventions. Their incomplete netlists have not been included as training targets.
+
+## Temperature acquisition subsystem
+
+CircuitLM 0.5 adds the 8051, LM35, and ADC0804 acquisition slice from the temperature-controller reference. The ADC pin numbers, recommended supply range, and separate analog/digital grounds were checked against [TI's ADC0804-N datasheet](https://www.ti.com/lit/ds/symlink/adc0804-n.pdf). The eight data signals retain the pictured Port 2 grouping. RD, WR and INTR assignments are explicit design choices. The LM35 output faces its destination and the rendered digital signals lie in parallel tracks. The original display and actuator sections remain separate references. No simulated readings are rendered.

@@ -88,7 +88,15 @@ def measure(snapshot, expected):
                 issues[name].add('incorrect junction dot')
 
     assert set(pins) | set(paths) <= expected.keys(), 'Unexpected SVG net'
+    label_overlaps = sum(
+        hit is not None and hit[2]-hit[0]>1 and hit[3]-hit[1]>1
+        for a,b in combinations(snapshot.get('labels', []), 2)
+        for hit in [intersection(a,b)]
+    )
     return {
+        'net_labels':len(snapshot.get('labels', [])),
+        'overlapping_net_label_pairs':label_overlaps,
+        'wire_length_svg_units':sum(w[2]-w[0]+w[3]-w[1] for wires in paths.values() for w in wires),
         'strict_passed': sum(not issues.get(name) for name in expected),
         'strict_failures': {name: sorted(errors) for name, errors in sorted(issues.items()) if errors},
         'undotted_crossings': len(crossings),
@@ -115,6 +123,10 @@ DOM_SNAPSHOT = r"""svg => {
     }
     return {
         segments,
+        labels: nodes('text.label').map(n => {
+            const b = n.getBBox();
+            return [b.x, b.y, b.x+b.width, b.y+b.height];
+        }),
         pins: nodes('[data-pin]').map(n => [n.dataset.net, n.dataset.pin, ...xy(n)]),
         dots: nodes('[data-junction-net]').map(n => [n.dataset.junctionNet, ...xy(n)]),
         bodies: nodes('.component[data-width]').map(n =>

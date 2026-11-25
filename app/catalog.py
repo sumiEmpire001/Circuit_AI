@@ -126,3 +126,15 @@ CATALOG.update({
             ('OUT1','IN1-','IN1+','VCC+','IN2+','IN2-','OUT2',
              'OUT3','IN3-','IN3+','VCC-','IN4+','IN4-','OUT4')))),
 })
+
+CATALOG['adc0804lcn'] = dict(part(
+    'ADC0804LCN 8-bit ADC (PDIP-20)', 'custom',
+    {'1':'input','2':'input','3':'input','4':'input','5':'output','6':'input','7':'input',
+     '8':'ground','9':'input','10':'ground',**{str(i):'output' for i in range(11,19)},
+     '19':'bidirectional','20':'power_in'},
+    ('1','2','3','4','6','7','8','10','20'),
+    source='https://www.ti.com/lit/ds/symlink/adc0804-n.pdf'),
+    pin_labels=dict(zip(map(str,range(1,21)), (
+        'CS','RD','WR','CLK_IN','INTR','VIN+','VIN-','AGND','VREF/2','DGND',
+        'DB7','DB6','DB5','DB4','DB3','DB2','DB1','DB0','CLK_R','VCC',
+    ))), supply_range=(4.5,5.5))

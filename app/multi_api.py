@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import Field
 from starlette.concurrency import run_in_threadpool
+from app.calculations import calculate
 from app.catalog import CATALOG
 from app.circuitlm import draft_local
 from app.design import Design, Strict, check_design
@@ -84,6 +85,7 @@ def result_for(design,image_format='svg'):
     return dict(schema_version='2.0',design=data,validation=validation,image=image,
                 routing='Continuous wire routes where feasible; matching labels connect unrouted nets. Interior wire crossings connect only at junction dots.',
                 routing_audit=routing_audit,
+                calculations=calculate(design,validation),
                 routed_nets=sorted(route_names(svg)),
                 unrouted_nets=sorted(set(n.name for n in design.nets)-route_names(svg)),
                 bill_of_materials=[dict(ref=c.ref,part=c.part,value=c.value) for c in design.components])
@@ -93,7 +95,7 @@ def studio(): return Path(__file__).with_name('studio.html').read_text()
 
 @router.get('/v2/catalog')
 def catalog():
-    return dict(version='0.4.2',parts=CATALOG,limits=dict(components=200,nets=1000,custom_parts=100,pins_per_custom_part=64),
+    return dict(version='0.4.3',parts=CATALOG,limits=dict(components=200,nets=1000,custom_parts=100,pins_per_custom_part=64),
                 ai_configured=True,
                 notes='Definitions with pin_labels use the cited package pin numbers. Generic symbols use logical terminal names.')
 

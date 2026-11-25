@@ -16,7 +16,13 @@ CASES=[
  ('temperature_motor','builtin','temperature_motor',8,9),
 ]
 FIXTURES = json.loads(Path(__file__).with_name('frontend_netlists.json').read_text())
-IMAGE_PROMPT = json.loads((Path(__file__).resolve().parents[1] / 'training/corpus_v1.json').read_text())['at89c51_lcd'][1]
+CORPUS = json.loads((Path(__file__).resolve().parents[1] / 'training/corpus_v1.json').read_text())
+IMAGE_PROMPT = CORPUS['at89c51_lcd'][1]
+RC_CALC = (
+    'Use a 5 V DC source named V1, a 1 kohm resistor named R1, and a 100 nF capacitor named C1. '
+    'Connect V1 positive to R1 pin 1 on net INPUT. Connect R1 pin 2 to C1 pin 1 on net OUT. '
+    'Connect C1 pin 2 to V1 negative on net RETURN.'
+)
 REFERENCE_CASES = {'rc_long':'rc', 'bridge_long':'bridge', 'temperature_motor_local':'temperature_motor'}
 PIN_PROSE = (
     'Title: Twin RC outputs. Use a 5 V DC source named V1, a 4.7 kΩ resistor named R4, '
@@ -25,6 +31,8 @@ PIN_PROSE = (
     'Connect R5 pin 2 to C5 pin 1 on net SLOW. Connect V1 negative, C4.2, and C5.2 on net RETURN.'
 )
 CASES += [
+    ('image_adc','local',CORPUS['at89c51_adc'][0],11,19),
+    ('rc_calculation','local',RC_CALC,3,3),
     ('pin_prose_novel','local',PIN_PROSE,5,4),
     ('ne555_astable','local','Make an NE555P astable timer.',8,6),
     ('at89c51_lcd','local',IMAGE_PROMPT,9,16),
@@ -79,6 +87,14 @@ def main():
             expected = {name:set(pins.split()) for name,pins in FIXTURES[REFERENCE_CASES.get(label,label)].items()}
             assert {n['name']:set(n['pins']) for n in data['design']['nets']} == expected
             measured = measure(page.locator('#canvas svg').evaluate(DOM_SNAPSHOT), expected)
+            if label=='image_adc':
+                page.locator('#netTrace').select_option('DB0')
+                assert 'Continuous wire' in page.locator('#traceInfo').inner_text()
+                assert page.locator('#canvas [data-pin].trace-match').count() == 2
+                assert page.locator('#canvas [data-route-net].trace-match').count() > 0
+                page.locator('#netTrace').select_option('')
+            if label=='rc_calculation':
+                assert '1592 Hz' in page.locator('#calculations').inner_text()
             page.locator('#canvas').screenshot(path=str(out/(label+'.png')))
             results.append(dict(case=label,components=parts,nets=nets,routed=len(data['routed_nets']),label_only=len(data['unrouted_nets']),contacts=len(data['routing_audit']['conflicts']),continuous=len(data['routing_audit']['continuous_nets']),interrupted=len(data['routing_audit']['interrupted_nets']), **measured))
             (out/'results.json').write_text(json.dumps(results,indent=2))

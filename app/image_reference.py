@@ -41,3 +41,44 @@ def at89c51_lcd():
             'Firmware must initialize the display in 8-bit write-only mode. This draft has not been simulated.',
         ],
     )
+
+
+ADC_PROMPT = (
+    "Create an AT89C51 temperature sensing circuit with an LM35 and ADC0804LCN. "
+    "Use a common 5 V supply. Connect LM35 VOUT to ADC VIN+, and ground VIN-, AGND, DGND and CS. "
+    "Connect ADC DB0 through DB7 to AT89C51 P2.0 through P2.7 in order. "
+    "Connect ADC RD to P3.7, WR to P3.6, and INTR to P3.2. "
+    "Put a 10 kohm resistor between CLK R and CLK IN and a 150 pF capacitor from CLK IN to ground. "
+    "Keep the existing AT89C51 12 MHz crystal, two 33 pF load capacitors, and active-high RC reset. "
+    "Leave VREF/2 open for the supply-derived reference and keep clock and analog lines grouped."
+)
+
+
+def at89c51_adc():
+    """Image-derived sensor bus with an explicitly chosen handshake pin map."""
+    base = at89c51_lcd()
+    components = [c for c in base.components if c.ref not in {'LCD1','RV1'}]
+    components.extend([
+        dict(ref='U2',part='adc0804lcn',value='ADC0804LCN',position={'x':1350,'y':295}),
+        dict(ref='U3',part='lm35',value='LM35',position={'x':1980,'y':295}),
+        dict(ref='R2',part='resistor',value='10 kohm',position={'x':1980,'y':550}),
+        dict(ref='C4',part='capacitor',value='150 pF',position={'x':1980,'y':800}),
+    ])
+    keep = {'RST','XTAL1','XTAL2','VCC','GND'}
+    nets = {n.name:[p for p in n.pins if not p.startswith(('LCD1.','RV1.'))]
+            for n in base.nets if n.name in keep}
+    nets['VCC'].extend(['U2.20','U3.VS'])
+    nets['GND'].extend(['U2.1','U2.7','U2.8','U2.10','U3.GND','C4.2'])
+    nets.update({f'DB{i}':[f'U2.{18-i}',f'U1.{21+i}'] for i in range(8)})
+    nets.update({
+        'ADC_RD':['U1.17','U2.2'], 'ADC_WR':['U1.16','U2.3'],
+        'ADC_INTR':['U2.5','U1.12'], 'TEMP_ANALOG':['U3.VOUT','U2.6'],
+        'ADC_CLK_IN':['U2.4','R2.1','C4.1'], 'ADC_CLK_R':['U2.19','R2.2'],
+    })
+    return Design(title='AT89C51 temperature acquisition with ADC0804',
+                  components=components,nets=[dict(name=n,pins=p) for n,p in nets.items()],
+                  notes=[
+                      'Sensor, parallel data bus and RC oscillator are adapted from the temperature-controller image. RD, WR and INTR assignments are explicit choices for this reference.',
+                      'VREF/2 is left open to use the ADC internal divider. Verify conversion span and calibration. Add local supply bypassing and validate grounding with the actual hardware.',
+                      'Firmware must sequence WR, monitor INTR and read Port 2 with RD. Motor control, display and simulated readings are outside this subsystem.',
+                  ])
