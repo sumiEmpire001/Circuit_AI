@@ -28,4 +28,30 @@ def audit_routes(svg):
                 else: hx,hy,hu,vy,vx,vv=x,y,u,b,a,d
                 hit=min(hx,hu)<=vx<=max(hx,hu) and min(vy,vv)<=hy<=max(vy,vv)
             if hit: conflicts.append({'nets':sorted([n,m]),'reason':'visible cross-net contact'})
-    return {'segments':len(segments),'conflicts':conflicts,'passed':not conflicts}
+    # Strict geometric continuity: a visual gap is not a connected segment.
+    # This deliberately distinguishes bridged crossings from uninterrupted paths.
+    from collections import defaultdict
+    groups=defaultdict(list)
+    terminals=defaultdict(list)
+    for n,x,y,u,v in segments: groups[n].append((x,y,u,v))
+    for node in root.iter():
+        if node.get('data-pin') and node.get('data-net'):
+            terminals[node.get('data-net')].append((node.get('data-pin'),float(node.get('cx')),float(node.get('cy'))))
+    def touches(a,b):
+        x,y,u,v=a; p,q,r,s=b
+        return max(min(x,u),min(p,r))<=min(max(x,u),max(p,r)) and max(min(y,v),min(q,s))<=min(max(y,v),max(q,s))
+    continuous=[]; interrupted=[]; label_only=[]
+    for name,pins in terminals.items():
+        lines=groups[name]
+        if not lines: label_only.append(name);continue
+        seen={0}; stack=[0]
+        while stack:
+            i=stack.pop()
+            for j,b in enumerate(lines):
+                if j not in seen and touches(lines[i],b):
+                    seen.add(j);stack.append(j)
+        missing=[ref for ref,x,y in pins if not any(touches(lines[i],(x,y,x,y)) for i in seen)]
+        if missing or len(seen)!=len(lines): interrupted.append({'net':name,'unreached_pins':missing,'disconnected_segments':len(lines)-len(seen)})
+        else: continuous.append(name)
+    return {'segments':len(segments),'conflicts':conflicts,'passed':not conflicts,
+            'continuous_nets':sorted(continuous),'interrupted_nets':interrupted,'label_only_nets':sorted(label_only)}
