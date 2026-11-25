@@ -12,6 +12,7 @@ CASES=[
  ('lcd','local','Arduino Uno with a 16x2 LCD',5,10),
  ('servo','builtin','mega_ldr_servo',6,5),
  ('ledbank','builtin','4-channel LED bank',9,6),
+ ('temperature_motor','builtin','temperature_motor',8,9),
 ]
 def main():
     out=Path('frontend-results');out.mkdir(exist_ok=True)
@@ -37,7 +38,7 @@ def main():
             assert data['routing_audit']['passed'],data['routing_audit']
             assert page.locator('#canvas [data-pin]').count()==sum(len(n['pins']) for n in data['design']['nets'])
             page.locator('#canvas').screenshot(path=str(out/(label+'.png')))
-            results.append(dict(case=label,components=parts,nets=nets,routed=len(data['routed_nets']),label_only=len(data['unrouted_nets']),contacts=len(data['routing_audit']['conflicts'])))
+            results.append(dict(case=label,components=parts,nets=nets,routed=len(data['routed_nets']),label_only=len(data['unrouted_nets']),contacts=len(data['routing_audit']['conflicts']),continuous=len(data['routing_audit']['continuous_nets']),interrupted=len(data['routing_audit']['interrupted_nets'])))
             (out/'results.json').write_text(json.dumps(results,indent=2))
             print(results[-1],flush=True)
         page.set_viewport_size({'width':390,'height':844})
