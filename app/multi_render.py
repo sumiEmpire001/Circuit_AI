@@ -55,6 +55,8 @@ def render_design(design,validation):
     routes=[]
     occupied=set()
     horizontal=[]
+    vertical=[]
+    pin_positions={(p[0],p[1]) for p in points.values()}
     for index,net in enumerate(design.nets):
         bus=height+40+index*24
         branches=[]
@@ -65,6 +67,10 @@ def render_design(design,validation):
             for offset in range(12,181,8):
                 tx=px+direction*offset
                 if tx<20 or tx>width-20 or tx in occupied or any(t==tx for _,_,t in branches): continue
+                if any(tx==qx and qy>=py for qx,qy in pin_positions): continue
+                if any(min(px,tx)<=vx<=max(px,tx) and vy<=py<=vb and (vx in (px,tx) or py in (vy,vb)) for vx,vy,vb in vertical): continue
+                if any(lo<=tx<=hi and py<=hy<=bus and (tx in (lo,hi) or hy==py) for hy,lo,hi in horizontal): continue
+                if any(py==by and min(px,tx)<=max(bp,bt) and max(px,tx)>=min(bp,bt) for bp,by,bt in branches): continue
                 if any(py==hy and min(px,tx)<=hi and max(px,tx)>=lo for hy,lo,hi in horizontal): continue
                 if any(min(px,tx)<x+w+5 and max(px,tx)>x-5 and y-5<=py<=y+h+5 for x,y,w,h in boxes.values()): continue
                 if any(x-5<=tx<=x+w+5 and y+h+5>=py for x,y,w,h in boxes.values()): continue
@@ -74,6 +80,7 @@ def render_design(design,validation):
         if len(branches)!=len(net.pins): continue
         occupied.update(t for _,_,t in branches)
         horizontal.extend((py,min(px,t),max(px,t)) for px,py,t in branches)
+        vertical.extend((t,py,bus) for px,py,t in branches)
         routes.append((net.name,bus,branches))
     for name,bus,branches in routes:
         attrs=f'data-route-net="{escape(name)}"'
