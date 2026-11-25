@@ -72,8 +72,10 @@ def check_design(design):
         spec=catalog[c.part]
         for pin in spec['required']:
             if f'{c.ref}.{pin}' not in pin_net: issue(c.ref,'unconnected_required',f'{c.ref}.{pin} needs a connection',True)
+        if c.part in ('servo_generic','relay_spdt','dc_motor','lcd1602_i2c_5v','ssd1306_i2c_3v3','capacitor_polarized','pnp','pmos','fuse'):
+            issue(c.ref,'rating_review','Verify exact module pinout, voltage, current, polarity and interface requirements against its datasheet')
         if c.part in design.custom_parts: issue(c.ref,'custom_unverified','Custom symbol: verify pinout and voltage limits against the datasheet')
-        if not c.value and c.part in ('resistor','capacitor','inductor','potentiometer','dc_source'): issue(c.ref,'missing_value','Specify the component value',True)
+        if not c.value and c.part in ('resistor','capacitor','capacitor_polarized','inductor','potentiometer','dc_source','fuse'): issue(c.ref,'missing_value','Specify the component value',True)
         connected=[pin_net[f'{c.ref}.{p}'] for p in spec['pins'] if f'{c.ref}.{p}' in pin_net]
         if len(spec['pins'])==2 and len(connected)==2 and len(set(connected))==1: issue(c.ref,'shorted_component','Both terminals are on the same net',True)
         if c.part in ('led','lcd1602'): issue(c.ref,'current_limit_review','Verify LED/backlight current limiting and module-specific ratings')
