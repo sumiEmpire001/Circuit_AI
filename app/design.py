@@ -80,6 +80,20 @@ def check_design(design):
         if len(spec['pins'])==2 and len(connected)==2 and len(set(connected))==1: issue(c.ref,'shorted_component','Both terminals are on the same net',True)
         if c.part in ('led','lcd1602'): issue(c.ref,'current_limit_review','Verify LED/backlight current limiting and module-specific ratings')
         if c.part=='dc_source' and (voltage(c.value) is None or not 0<voltage(c.value)<=24): issue(c.ref,'supply_range','Use an explicit DC supply between 0 and 24 V',True)
+    # Reference-mode LCD checks: RW must share the LCD ground in write-only mode.
+    for c in design.components:
+        if c.part=='lcd1602':
+            g=pin_net.get(f'{c.ref}.1')
+            rw=pin_net.get(f'{c.ref}.5')
+            if g is not None and rw is not None and g!=rw:
+                issue(c.ref,'lcd_rw_ground','This write-only LCD definition requires RW connected to VSS',True)
+            for pin in ('15','16'):
+                if f'{c.ref}.{pin}' not in pin_net:
+                    issue(c.ref,'lcd_backlight_unconnected','Backlight terminal unconnected; display illumination is not assured')
+        if c.part=='servo_generic':
+            sig=pin_net.get(f'{c.ref}.SIG')
+            if sig is not None and sig in (pin_net.get(f'{c.ref}.VCC'),pin_net.get(f'{c.ref}.GND')):
+                issue(c.ref,'servo_signal_rail','Servo signal is tied directly to its power or ground rail',True)
     for n in design.nets:
         info=[]
         for p in n.pins:
