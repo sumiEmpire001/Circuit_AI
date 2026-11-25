@@ -24,11 +24,12 @@ def layout(design):
         elif len(pins)==2: left=pins[:1];right=pins[1:]
         else: left=pins[:(len(pins)+1)//2];right=pins[(len(pins)+1)//2:]
         h=max(110,70+max(len(left),len(right))*22);w=230
+        if spec['symbol']=='lcd': w=340; h+=48
         boxes[c.ref]=(x,y,w,h)
         row_tops[row+1]=max(row_tops.get(row+1,0),y+h+140)
         for side,ps in [('left',left),('right',right)]:
             for i,pin in enumerate(ps):
-                points[f'{c.ref}.{pin}']=(x-28 if side=='left' else x+w+28,y+70+i*22,side)
+                points[f'{c.ref}.{pin}']=(x-28 if side=='left' else x+w+28,y+(118 if spec['symbol']=='lcd' else 70)+i*22,side)
     return boxes,points
 
 def render_design(design,validation):
@@ -65,7 +66,12 @@ def render_design(design,validation):
         two=len(spec['pins'])==2
         if two:
             line(f'M {x} {cy} H {x+70} M {x+160} {cy} H {x+w}','wire')
-            if kind=='resistor': parts.append(f'<rect class="symbol" x="{x+70}" y="{cy-10}" width="90" height="20"/>')
+            if kind in ('resistor','ldr','thermistor'):
+                parts.append(f'<rect class="symbol" x="{x+70}" y="{cy-10}" width="90" height="20"/>')
+                if kind=='ldr':
+                    line(f'M {x+78} {cy-40} l 16 18 m -9 -2 l 9 2 l -1 -9 M {x+110} {cy-40} l 16 18 m -9 -2 l 9 2 l -1 -9')
+                elif kind=='thermistor':
+                    line(f'M {x+85} {cy+22} L {x+145} {cy-22} h 12')
             elif kind=='capacitor':
                 line(f'M {x+70} {cy} H {x+105} M {x+105} {cy-20} V {cy+20} M {x+125} {cy-20} V {cy+20} M {x+125} {cy} H {x+160}')
             elif kind in ('led','diode'):
@@ -89,8 +95,17 @@ def render_design(design,validation):
         else:
             parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="#e4e5c7" stroke="#874d3d" stroke-width="2"/>')
             if kind=='lcd':
-                parts.append(f'<rect x="{x+20}" y="{y+12}" width="{w-40}" height="28" fill="#35431b"/>')
-                parts.append(f'<text x="{x+30}" y="{y+31}" style="fill:#b5c77b">16 × 2 LCD</text>')
+                parts.append(f'<rect x="{x+14}" y="{y+10}" width="{w-28}" height="92" rx="5" fill="#17694c" stroke="#315846"/>')
+                for dx in (23,w-23):
+                    for dy in (19,93):
+                        parts.append(f'<circle cx="{x+dx}" cy="{y+dy}" r="4" fill="#eeeedb" stroke="#c8ad62"/>')
+                parts.append(f'<rect x="{x+35}" y="{y+20}" width="{w-70}" height="70" rx="3" fill="#20262c"/>')
+                parts.append(f'<rect x="{x+45}" y="{y+29}" width="{w-90}" height="52" rx="2" fill="#163e99"/>')
+                for row in range(2):
+                    for col in range(16):
+                        parts.append(f'<rect x="{x+53+col*14}" y="{y+34+row*22}" width="11" height="17" fill="#8bb8ff" opacity=".23"/>')
+                parts.append(f'<text x="{x+w/2}" y="{y+47}" text-anchor="middle" style="fill:#e5f1ff;font-family:monospace">16 × 2 LCD</text>')
+                parts.append(f'<text x="{x+w/2}" y="{y+69}" text-anchor="middle" style="fill:#e5f1ff;font-family:monospace">HD44780 parallel</text>')
             else: text(x+w/2,y+30,('Arduino Uno R3' if c.part=='arduino_uno' else spec['name'][:28]),anchor='middle')
         for pin in spec['pins']:
             px,py,side=points[f'{c.ref}.{pin}'];left=side=='left';edge=x if left else x+w
