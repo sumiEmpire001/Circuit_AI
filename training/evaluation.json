@@ -1,0 +1,47 @@
+{
+  "results": [
+    {
+      "prompt": "wire lcd to uno",
+      "expected": "controller_lcd",
+      "predicted": "controller_lcd"
+    },
+    {
+      "prompt": "arduino uno hd44780 parallel display",
+      "expected": "controller_lcd",
+      "predicted": "controller_lcd"
+    },
+    {
+      "prompt": "multiple led bank channels",
+      "expected": "led_bank",
+      "predicted": "led_bank"
+    },
+    {
+      "prompt": "led array with individual resistors",
+      "expected": "led_bank",
+      "predicted": "led_bank"
+    },
+    {
+      "prompt": "two stage passive rc filter",
+      "expected": "rc_ladder",
+      "predicted": "rc_ladder"
+    },
+    {
+      "prompt": "cascade rc ladder",
+      "expected": "rc_ladder",
+      "predicted": "rc_ladder"
+    },
+    {
+      "prompt": "esp32 motor controller",
+      "expected": "unsupported",
+      "predicted": "unsupported"
+    },
+    {
+      "prompt": "battery charger regulator",
+      "expected": "unsupported",
+      "predicted": "unsupported"
+    }
+  ],
+  "correct": 8,
+  "total": 8,
+  "scope": "Small authored holdout; classifier only, not electrical accuracy"
+}
