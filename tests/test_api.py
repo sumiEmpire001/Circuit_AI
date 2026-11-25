@@ -1,7 +1,5 @@
 import base64
 import math
-from unittest.mock import patch
-import httpx
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app, check_graph
@@ -50,9 +48,8 @@ def test_api_key(monkeypatch):
     assert generate().status_code==401
     assert client.post('/v1/generate',headers={'X-API-Key':'test-only-key'},json={'prompt':DIV}).status_code==200
 
-def test_unconfigured_model(monkeypatch):
-    monkeypatch.delenv('OLLAMA_MODEL',raising=False)
-    assert generate(parser='ollama').status_code==503
+def test_remote_parser_removed():
+    assert generate(parser='ollama').status_code==422
 
 def test_graph_rejects_short():
     with pytest.raises(ValueError):
@@ -61,22 +58,6 @@ def test_graph_rejects_short():
 def test_graph_rejects_disconnected():
     with pytest.raises(ValueError):
         check_graph([{'ref':str(k),'pins':{'1':a,'2':b}} for k,(a,b) in enumerate([('0','a'),('a','0'),('x','y'),('y','x')])])
-
-@pytest.mark.parametrize('mode',['valid','decline','invalid','offline'])
-def test_model_boundary(monkeypatch,mode):
-    monkeypatch.setenv('OLLAMA_URL','http://model.test')
-    monkeypatch.setenv('OLLAMA_MODEL','test-model')
-    async def fake_post(self,url,**kwargs):
-        assert kwargs['json']['format']['type']=='object'
-        if mode=='offline': raise httpx.ConnectError('offline')
-        content={'valid':'{"intent":{"kind":"voltage_divider","supply_v":5,"r1_ohm":10000,"r2_ohm":10000},"reason":""}',
-                 'decline':'{"intent":null,"reason":"Please specify resistor values"}',
-                 'invalid':'{"intent":{"kind":"madeup"},"reason":""}'}[mode]
-        return httpx.Response(200,json={'message':{'content':content}},request=httpx.Request('POST',url))
-    with patch.object(httpx.AsyncClient,'post',fake_post):
-        r=generate('Create a voltage divider with 5 V and two 10 kohm resistors',parser='ollama')
-    assert r.status_code=={'valid':200,'decline':422,'invalid':502,'offline':502}[mode]
-    if mode=='valid': assert r.json()['validation']['prompt_interpretation_requires_review']
 
 def test_ui_and_contract():
     assert client.get('/').status_code==200
