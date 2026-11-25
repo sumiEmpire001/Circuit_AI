@@ -9,7 +9,16 @@ def main():
         page=browser.new_page(viewport={'width':1440,'height':1000});errors=[]
         page.on('pageerror',lambda e:errors.append(str(e)))
         page.goto(os.getenv('STUDIO_TEST_URL','http://127.0.0.1:8765/studio'))
-        page.wait_for_function("document.getElementById('aiStatus').textContent.includes('configured')")
+        page.wait_for_function("!document.getElementById('generate').disabled")
+        page.locator('#example').select_option('led_single')
+        page.get_by_role('button',name='Load example',exact=True).click()
+        page.wait_for_selector('#canvas svg')
+        assert page.locator('#components tr').count()==3
+        assert '0 label-only nets' in page.locator('#status').inner_text()
+        page.get_by_role('button',name='+ Zoom',exact=True).click()
+        assert page.locator('#canvas svg').evaluate('(s)=>s.style.width')=='125%'
+        page.get_by_role('button',name='Fit',exact=True).click()
+        page.locator('#example').select_option('controller_lcd')
         page.get_by_role('button',name='Load example',exact=True).click();page.wait_for_selector('#canvas svg')
         assert page.locator('#components tr').count()==5
         field=page.locator('#components tr').nth(4).locator('input').nth(1)
@@ -25,9 +34,10 @@ def main():
         for name in ['Download SVG','Download PNG','Download editable JSON']:
             with page.expect_download() as dl:page.get_by_role('button',name=name,exact=True).click()
             download=dl.value;assert download.failure() is None;download.save_as('/tmp/'+download.suggested_filename)
+        page.get_by_text('Diagnostics and component library',exact=True).click()
         page.get_by_role('button',name='Run example tests',exact=True).click()
-        page.wait_for_function("document.getElementById('testResults').textContent.includes('rc_ladder')")
-        assert page.locator('#testResults').inner_text().count('PASS')==3
+        page.wait_for_function("document.getElementById('testResults').textContent.includes('mega_ldr_servo')")
+        assert page.locator('#testResults').inner_text().count('PASS')==5
         page.locator('#import').set_input_files('/tmp/circuit-editable.json')
         page.wait_for_function("document.querySelector('#canvas svg').textContent.includes('330 ohm')")
         page.screenshot(path='/tmp/circuit-studio-desktop.png',full_page=True)
