@@ -25,3 +25,15 @@ def test_complex_routes_preserve_net_ownership():
         routed={p.attrib['data-route-net'] for p in root.iter() if 'data-route-net' in p.attrib}
         assert routed
         assert {p.attrib['data-junction-net'] for p in root.iter() if 'data-junction-net' in p.attrib}<=routed
+
+
+def test_live_contract_three_component_prompt():
+    from fastapi.testclient import TestClient
+    from app.main import app
+    response=TestClient(app).post('/v2/draft',json={'prompt':'5v led with 330 ohm resistor','parser':'builtin'})
+    assert response.status_code==200
+    result=response.json()
+    assert len(result['design']['components'])==3
+    assert not result['validation']['errors']
+    assert len(result['routed_nets'])==3
+    assert result['unrouted_nets']==[]
