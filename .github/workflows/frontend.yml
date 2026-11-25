@@ -1,0 +1,23 @@
+name: Studio browser benchmark
+on: [push, pull_request]
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-dev.txt playwright
+      - run: python -m playwright install --with-deps chromium
+      - run: |
+          python -m uvicorn app.main:app --port 8765 > server.log 2>&1 &
+          for i in $(seq 1 60); do curl -fsS http://127.0.0.1:8765/health && break; sleep 1; done
+          python scripts/frontend_benchmark.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: studio-browser-results
+          path: |
+            frontend-results/
+            server.log
