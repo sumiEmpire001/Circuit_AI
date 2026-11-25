@@ -1,9 +1,13 @@
 """Audit emitted route geometry, independently of the routing algorithm."""
+from collections import defaultdict
 import re
 import xml.etree.ElementTree as ET
 
 def audit_routes(svg):
     root=ET.fromstring(svg)
+    dot_style = root.get('data-crossing-style') == 'junction-dot'
+    junctions = {(float(node.get('cx')),float(node.get('cy')))
+                 for node in root.iter() if node.get('data-junction-net')}
     segments=[]
     for node in root.iter():
         net=node.get('data-route-net')
@@ -16,6 +20,7 @@ def audit_routes(svg):
             if (x,y)!=(nx,ny): segments.append((net,x,y,nx,ny))
             x,y=nx,ny
     conflicts=[]
+    crossings=set()
     for i,(n,x,y,u,v) in enumerate(segments):
         for m,a,b,c,d in segments[i+1:]:
             if n==m: continue
@@ -27,10 +32,13 @@ def audit_routes(svg):
                 if x==u: hx,hy,hu,vy,vx,vv=a,b,c,y,x,v
                 else: hx,hy,hu,vy,vx,vv=x,y,u,b,a,d
                 hit=min(hx,hu)<=vx<=max(hx,hu) and min(vy,vv)<=hy<=max(vy,vv)
+                if (dot_style and min(hx,hu)<vx<max(hx,hu)
+                        and min(vy,vv)<hy<max(vy,vv) and (vx,hy) not in junctions):
+                    crossings.add((vx,hy))
+                    hit=False
             if hit: conflicts.append({'nets':sorted([n,m]),'reason':'visible cross-net contact'})
     # Strict geometric continuity: a visual gap is not a connected segment.
     # This deliberately distinguishes bridged crossings from uninterrupted paths.
-    from collections import defaultdict
     groups=defaultdict(list)
     terminals=defaultdict(list)
     for n,x,y,u,v in segments: groups[n].append((x,y,u,v))
@@ -53,5 +61,5 @@ def audit_routes(svg):
         missing=[ref for ref,x,y in pins if not any(touches(lines[i],(x,y,x,y)) for i in seen)]
         if missing or len(seen)!=len(lines): interrupted.append({'net':name,'unreached_pins':missing,'disconnected_segments':len(lines)-len(seen)})
         else: continuous.append(name)
-    return {'segments':len(segments),'conflicts':conflicts,'passed':not conflicts,
+    return {'segments':len(segments),'undotted_crossings':len(crossings),'conflicts':conflicts,'passed':not conflicts,
             'continuous_nets':sorted(continuous),'interrupted_nets':interrupted,'label_only_nets':sorted(label_only)}

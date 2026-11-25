@@ -86,3 +86,22 @@ def temperature_motor():
                'Verify motor stall current, driver voltage drop, thermal limits and bulk supply decoupling. L293D has internal clamp diodes; verify the exact device.',
                'Firmware must drive D9 PWM and D7/D8 direction. Not simulated or hardware verified.'])
 EXAMPLES['temperature_motor']=temperature_motor
+
+def schmitt_inverter():
+    return Design(title='SN74HC14N Schmitt-trigger inverter', components=[
+        dict(ref='J1',part='connector2',value='Logic input'),
+        dict(ref='U1',part='sn74hc14n',value='SN74HC14N'),
+        dict(ref='J2',part='connector2',value='Inverted output'),
+        dict(ref='V1',part='dc_source',value='5 V'),
+        dict(ref='C1',part='capacitor',value='100 nF'),
+    ], nets=[
+        dict(name='LOGIC_IN',pins=['J1.1','U1.1']),
+        dict(name='LOGIC_OUT',pins=['U1.2','J2.1']),
+        dict(name='VCC',pins=['V1.+','U1.14','C1.1']),
+        dict(name='GND',pins=['V1.-','U1.7','C1.2','J1.2','J2.2','U1.3','U1.5','U1.9','U1.11','U1.13']),
+    ], notes=[
+        'Single gate with unused CMOS inputs tied low and unused outputs left open.',
+        'Check input thresholds and output load for the actual supply. See https://www.ti.com/lit/ds/symlink/sn74hc14.pdf',
+    ])
+
+EXAMPLES['schmitt_inverter']=schmitt_inverter

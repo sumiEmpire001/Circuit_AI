@@ -1,3 +1,25 @@
+# Phase 2 validation record
+
+Baseline commit `966c791` passed both GitHub workflows and all 88 locally reproduced backend tests. The Chromium suite's nine original prompts yielded 16 of 49 uninterrupted nets. In particular, the Uno/LCD produced 0 of 10 and the temperature-controlled motor produced 1 of 9. Matching labels supplied connectivity where routes were incomplete.
+
+The updated branch passed 92 Python tests. Chromium submitted prompts through Studio and measured SVG geometry with `scripts/routing_measurement.py`, which does not import RouteGuard or the router. The expected netlists are in `scripts/frontend_netlists.json`. The checker verifies exact pin membership, wire continuity, symbol-body clearance, junction dots, and ambiguous cross-net contacts. A plain orthogonal crossing is valid when both wires continue through it and no junction dot is present.
+
+| Chromium cases | Passing nets | Coverage |
+| --- | ---: | --- |
+| Nine original prompts | 49 / 49 | Seven distinct circuits, including Uno/LCD and motor driver |
+| Three additional local prompts | 16 / 16 | Alternate motor wording, Mega/LDR, SN74HC14N |
+| Three explicit netlists outside the classifier corpus | 20 / 20 | LM358N buffer, dual filter, dual transistor LED loads |
+| LED-bank stress tests | 118 / 118 | 16, 32, and 64 branches, all with zero wire crossings |
+| Total | 203 / 203 | 18 browser submissions, including repeated topologies |
+
+The 32-channel bank initially had a label-only VCC rail and 1,286 crossings. Routing repeated branches along shared rails resolved both. The general router completed the temperature motor's 9 nets with 16 undotted crossings; the dual filter still had 20 undotted crossings on five nets. The browser smoke test also exercised edits, drag, downloads in three formats, JSON import, the examples panel, and mobile overflow. Chromium verified that an unsupported add-on to a reviewed local prompt was rejected.
+
+The visual review compared the IEC series resistor and LED symbols with the [KiCad tutorial](https://docs.kicad.org/9.0/en/getting_started_in_kicad/getting_started_in_kicad.html), and the motor stage's enable, direction inputs, split supplies and paired loads with [TI's L293/L293D reference](https://www.ti.com/lit/ds/symlink/l293d.pdf). The wire audit follows [KiCad's junction convention](https://docs.kicad.org/9.0/en/eeschema/eeschema.html) and [Proteus's documented branch junctions](https://www.labcenter.com/documentation/mergedProjects/Schematic%20Capture%20Manual/GENERAL_CONCEPTS/Wiring_Up.htm). Several dense worksheets still have crowded labels and blocks standing in for full device symbols. Native KiCad/Proteus ERC and simulation have yet to be run.
+
+The score applies to this authored suite. The independent 98% acceptance threshold still needs a blinded set of externally sourced, diverse netlists and a separate visual review. Electrical suitability, simulation and hardware operation are outside this measurement.
+
+Run `python -m pytest -q` for backend tests. Install Playwright's Chromium and start Uvicorn on port 8765, then run `python scripts/frontend_benchmark.py` and `python scripts/browser_test.py`. Set `BROWSER_EXECUTABLE` to use an installed Chromium and `STUDIO_TEST_URL` to point at a running preview.
+
 # v0.3 validation record
 
 - Python suite: 65 passing tests, including the original v1 regression tests.

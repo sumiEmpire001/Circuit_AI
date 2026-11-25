@@ -1,14 +1,65 @@
 """SVG schematic renderer. Shared net labels are electrical connections.
 Only unobstructed facing pins receive direct wires; other nets use explicit labels.
 """
+from collections import defaultdict
 from html import escape
 from app.catalog import LCD_LABELS
+from app.parallel_led import bank_placement
+
+def signal_placement(design, catalog):
+    """Place a directed signal chain in columns, with shared support below it."""
+    if len(design.components)>12 or any(c.position for c in design.components):
+        return {}
+    specs={c.ref:catalog[c.part] for c in design.components}
+    loads={c.ref for c in design.components if c.part in {'dc_motor','servo_generic'}}
+    followers=defaultdict(set)
+    incoming=defaultdict(set)
+    groups=defaultdict(set)
+    for net in design.nets:
+        pins=[p.split('.') for p in net.pins]
+        roles={specs[ref]['pins'][pin] for ref,pin in pins}
+        if {'ground','power_out','power_in'} & roles:
+            if 'power_out' in roles:
+                refs={ref for ref,_ in pins}
+                for ref in refs:
+                    groups[ref].update(refs-{ref})
+            continue
+        drivers=[ref for ref,pin in pins if specs[ref]['pins'][pin] in {'output','bidirectional'}]
+        if len(drivers)!=1:
+            continue
+        driver=drivers[0]
+        for ref,pin in pins:
+            if ref!=driver and (ref in loads or specs[ref]['pins'][pin]=='input'):
+                followers[driver].add(ref)
+                incoming[ref].add(driver)
+    ranks={ref:0 for ref in followers if ref not in incoming}
+    pending=set(incoming)
+    while ready := {ref for ref in pending if incoming[ref]<=ranks.keys()}:
+        for ref in sorted(ready):
+            ranks[ref]=1+max(ranks[parent] for parent in incoming[ref])
+        pending-=ready
+    if pending or max(ranks.values(),default=0)<2:
+        return {}
+    columns=defaultdict(list)
+    for ref in sorted(ranks):
+        columns[ranks[ref]].append(ref)
+    if any(len(refs)>1 for refs in columns.values()):
+        return {}
+    positions={ref:(210+rank*540,130) for rank,refs in columns.items() for ref in refs}
+    below=defaultdict(int)
+    for ref in sorted(specs.keys()-ranks.keys()):
+        neighbors=sorted(ranks[other] for other in groups[ref] if other in ranks)
+        col=neighbors[len(neighbors)//2] if neighbors else 0
+        positions[ref]=(210+col*540,650+below[col]*250)
+        below[col]+=1
+    return positions
+
 
 def layout(design):
     catalog=design.catalog(); boxes={}; points={}
     cols=min(2 if len(design.components)<=12 else 3,len(design.components))
     row_tops={0:130}
-    compact={}
+    compact=bank_placement(design) or signal_placement(design,catalog)
     # Recognize the actual series-loop topology rather than the prompt title.
     bypart={c.part:c.ref for c in design.components}
     if len(design.components)==3 and set(bypart)=={'dc_source','resistor','led'}:
@@ -28,8 +79,11 @@ def layout(design):
         elif c.part=='lcd1602':
             left=['4','6','11','12','13','14','1','2','3','5']; right=['7','8','9','10','15','16']
         elif c.part=='uln2003a': left=[f'IN{i}' for i in range(1,8)]+['E']; right=[f'OUT{i}' for i in range(1,8)]+['COM']
-        elif c.part=='l293d': left=['VCC1','VCC2','EN12','IN1','IN2','EN34','IN3','IN4','GND1','GND2','GND3','GND4']; right=['OUT1','OUT2','OUT3','OUT4']
+        elif c.part=='l293d': left=['EN12','IN1','IN2','VCC1','VCC2','EN34','IN3','IN4','GND1','GND2','GND3','GND4']; right=['OUT1','OUT2','OUT3','OUT4']
         elif c.part=='lm35': left=['VS','GND']; right=['VOUT']
+        elif spec.get('pin_labels'):
+            left=[p for role in ('input','power_in','ground','passive','bidirectional') for p in pins if spec['pins'][p]==role]
+            right=[p for p in pins if p not in left]
         elif spec['symbol']=='pot': left=['1','W']; right=['2']
         elif c.part=='npn': left=['B']; right=['C','E']
         elif c.part=='nmos': left=['G']; right=['D','S']
@@ -42,13 +96,31 @@ def layout(design):
         for side,ps in [('left',left),('right',right)]:
             for i,pin in enumerate(ps):
                 points[f'{c.ref}.{pin}']=(x-28 if side=='left' else x+w+28,y+(118 if spec['symbol']=='lcd' else 70)+i*22,side)
+    # Swap the entire glyph and its two endpoints when the neighboring nets
+    # predominantly approach from the opposite sides.
+    nets_by_pin={pin:net for net in design.nets for pin in net.pins}
+    for c in design.components:
+        pins=list(catalog[c.part]['pins'])
+        if len(pins)!=2:
+            continue
+        first,second=(f'{c.ref}.{pin}' for pin in pins)
+        if first not in nets_by_pin or second not in nets_by_pin:
+            continue
+        x,_,w,_=boxes[c.ref]
+        def side_preference(terminal):
+            neighbors=[boxes[p.split('.')[0]] for p in nets_by_pin[terminal].pins if not p.startswith(c.ref+'.')]
+            if not neighbors:
+                return 0
+            return sum((nx+nw/2>x+w/2)-(nx+nw/2<x+w/2) for nx,_,nw,_ in neighbors)/len(neighbors)
+        if side_preference(first)>side_preference(second):
+            points[first],points[second]=points[second],points[first]
     return boxes,points
 
 def render_design(design,validation,route_order=None):
     cat=design.catalog();boxes,points=layout(design)
     width=max(x+w+200 for x,y,w,h in boxes.values());height=max(y+h+100 for x,y,w,h in boxes.values())
     width=max(width,900);height=max(height,450)
-    parts=[f'''<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title">
+    parts=[f'''<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title" data-crossing-style="junction-dot">
 <title id="title">{escape(design.title)}</title>
 <defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#c4c8ad" stroke-width="0.5"/></pattern></defs>
 <rect width="100%" height="100%" fill="#eeeedb"/><rect width="100%" height="100%" fill="url(#grid)"/>
@@ -99,19 +171,7 @@ def render_design(design,validation,route_order=None):
         line(f'M {min(xs)} {bus} H {max(xs)}','wire',attrs)
         for px,py,tx in branches:
             line(f'M {px} {py} H {tx}','wire',attrs)
-            # Bridge over other nets' horizontal tracks, never over our own junction.
-            crossings=set()
-            for other,ob,obs in routes:
-                if other==name: continue
-                ox=[t for _,_,t in obs]
-                if py+5<ob<bus-5 and min(ox)<tx<max(ox): crossings.add(ob)
-                for op,oy,ot in obs:
-                    if py+5<oy<bus-5 and min(op,ot)<tx<max(op,ot): crossings.add(oy)
-            path=f'M {tx} {py}'
-            for cross in sorted(crossings):
-                path+=f' V {cross-4} M {tx} {cross+4}'
-            path+=f' V {bus}'
-            line(path,'wire',attrs)
+            line(f'M {tx} {py} V {bus}','wire',attrs)
             if min(xs)<tx<max(xs):
                 parts.append(f'<circle cx="{tx}" cy="{bus}" r="3.5" fill="#285b36" data-junction-net="{escape(name)}"/>')
     # Extend canvas to include buses; preserve component positions.
@@ -122,11 +182,14 @@ def render_design(design,validation,route_order=None):
     pin_net={p:n.name for n in design.nets for p in n.pins}
     for c in design.components:
         x,y,w,h=boxes[c.ref]; spec=cat[c.part]; kind=spec['symbol'];cy=y+70
-        parts.append(f'<g class="component" data-ref="{c.ref}" data-x="{x}" data-y="{y}">')
+        parts.append(f'<g class="component" data-ref="{c.ref}" data-x="{x}" data-y="{y}" data-width="{w}" data-height="{h}">')
         text(x,y-25,c.ref+' · '+c.part)
         text(x,y-7,c.value[:40])
         two=len(spec['pins'])==2
         if two:
+            mirrored=points[f"{c.ref}.{next(iter(spec['pins']))}"][2]=='right'
+            if mirrored:
+                parts.append(f'<g transform="translate({2*x+w} 0) scale(-1 1)">')
             line(f'M {x} {cy} H {x+70} M {x+160} {cy} H {x+w}','wire')
             if kind in ('resistor','ldr','thermistor'):
                 parts.append(f'<rect class="symbol" x="{x+70}" y="{cy-10}" width="90" height="20"/>')
@@ -143,9 +206,17 @@ def render_design(design,validation,route_order=None):
                 parts.append(f'<circle class="symbol" cx="{x+115}" cy="{cy}" r="25"/>')
                 line(f'M {x+70} {cy} H {x+90} M {x+140} {cy} H {x+160} M {x+98} {cy} h 10 m -5 -5 v 10 M {x+123} {cy} h 10')
             elif kind=='switch': line(f'M {x+70} {cy} H {x+90} L {x+140} {cy-25} M {x+140} {cy} H {x+160}')
+            elif kind=='motor':
+                parts.append(f'<circle class="symbol" cx="{x+115}" cy="{cy}" r="24"/>')
+                line(f'M {x+70} {cy} H {x+91} M {x+139} {cy} H {x+160}')
             elif kind=='inductor': line(f'M {x+70} {cy} '+''.join('a 11.25 13 0 0 1 22.5 0 ' for _ in range(4)))
             else:
                 parts.append(f'<rect class="symbol" x="{x+70}" y="{cy-15}" width="90" height="30"/>')
+            if mirrored:
+                parts.append('</g>')
+            if kind=='motor':
+                text(x+115,cy+4,'M',anchor='middle')
+            elif kind not in {'resistor','ldr','thermistor','capacitor','led','diode','source','switch','inductor'}:
                 text(x+115,cy+4,spec['name'][:12],anchor='middle')
         elif kind=='pot':
             line(f'M {x} {cy} H {x+70} M {x+160} {cy} H {x+w}','wire')
@@ -175,7 +246,7 @@ def render_design(design,validation,route_order=None):
             px,py,side=points[f'{c.ref}.{pin}'];left=side=='left';edge=x if left else x+w
             net=pin_net.get(f'{c.ref}.{pin}')
             line(f'M {px} {py} H {edge}','wire')
-            label=pin+(' '+LCD_LABELS[pin] if c.part=='lcd1602' else '')
+            label=pin+(' '+LCD_LABELS[pin] if c.part=='lcd1602' else ' '+spec['pin_labels'][pin] if spec.get('pin_labels') else '')
             text(edge+5 if left else edge-5,py-5,label,'pin','start' if left else 'end')
             if net:
                 text(px-5 if left else px+5,py-5,net,'label','end' if left else 'start')

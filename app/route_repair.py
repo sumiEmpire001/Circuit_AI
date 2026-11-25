@@ -4,13 +4,16 @@ import re
 from collections import Counter
 from app.multi_render import render_design
 from app.route_guard import audit_routes
-from app.route_search import route_grid
+from app.route_search import route_grid, route_parallel_led
 
 def route_names(svg):
     return {unescape(n) for n in re.findall(r'data-route-net="([^"]+)"',svg)}
 
 def remove_routes(svg,names):
     return re.sub(r'<(?:path|circle)\b[^>]*\bdata-(?:route|junction)-net="([^"]+)"[^>]*/>',lambda m:'' if unescape(m[1]) in names else m[0],svg)
+
+AUDIT_SCOPE = ('Cross-net overlaps, endpoint contacts, junctions and visible pin-to-pin continuity. '
+               'Undotted interior crossings are separate nets.')
 
 def render_repaired(design,validation):
     nets=list(design.nets)
@@ -19,14 +22,27 @@ def render_repaired(design,validation):
     best=None
     seen=set()
     attempts=0
-    grid=route_grid(design,validation)
-    if grid is not None:
-        svg,boxes,size=grid
+    repeated=route_parallel_led(design,validation)
+    if repeated is not None:
+        svg,boxes,size=repeated
         audit=audit_routes(svg)
         attempts+=1
-        if audit['passed']:
-            best=((len(route_names(svg)),len(audit['continuous_nets']),0,0,-size[1]),svg,boxes,size,audit,[],0)
-    for order in orders[:3] if grid is not None else orders:
+        if audit['passed'] and len(audit['continuous_nets'])==len(nets):
+            audit.update(attempts=attempts,removed_routes=[],initial_conflicts=0,scope=AUDIT_SCOPE)
+            return svg,boxes,size,audit
+    grid=route_grid(design,validation)
+    if grid is not None:
+        for allow_crossings,rails_first in ((False,False),(True,False),(True,True)):
+            svg,boxes,size=route_grid(design,validation,allow_crossings=True,rails_first=rails_first) if allow_crossings else grid
+            audit=audit_routes(svg)
+            attempts+=1
+            if audit['passed']:
+                score=(len(audit['continuous_nets']),len(route_names(svg)),0,0,-audit['undotted_crossings'],-size[1])
+                if best is None or score>best[0]:
+                    best=(score,svg,boxes,size,audit,[],0)
+            if best is not None and best[0][0]==len(nets):
+                break
+    for order in orders[:1] if grid is not None else orders:
         if best is not None and best[0][0]==len(nets) and best[0][1]==len(nets): break
         key=tuple(n.name for n in order)
         if key in seen: continue
@@ -43,10 +59,10 @@ def render_repaired(design,validation):
             svg=remove_routes(svg,{victim})
             audit=audit_routes(svg)
         coverage=len(route_names(svg))
-        score=(coverage,len(audit['continuous_nets']),-len(removed),-initial,-size[1])
+        score=(len(audit['continuous_nets']),coverage,-len(removed),-initial,-audit['undotted_crossings'],-size[1])
         if best is None or score>best[0]:
             best=(score,svg,boxes,size,audit,sorted(removed),initial)
         if coverage==len(nets) and len(audit['continuous_nets'])==len(nets): break
     _,svg,boxes,size,audit,removed,initial=best
-    audit.update(attempts=attempts,removed_routes=removed,initial_conflicts=initial,scope='Cross-net contacts and strict visible segment continuity; intentional bridge gaps count as interruptions. Not electrical simulation.')
+    audit.update(attempts=attempts,removed_routes=removed,initial_conflicts=initial,scope=AUDIT_SCOPE)
     return svg,boxes,size,audit

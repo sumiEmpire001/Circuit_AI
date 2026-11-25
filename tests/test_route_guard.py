@@ -18,3 +18,11 @@ def test_geometric_pin_continuity():
         return audit_routes(f'<svg>{pins}<path data-route-net="A" d="{path}"/></svg>')
     assert case('M 0 10 H 20')['continuous_nets']==['A']
     assert case('M 0 10 H 8 M 12 10 H 20')['interrupted_nets'][0]['net']=='A'
+
+def test_dotted_crossing_convention_preserves_only_interior_crossings():
+    crossed = svg('M 0 10 H 20', 'M 10 0 V 20').replace('<svg>', '<svg data-crossing-style="junction-dot">')
+    audit = audit_routes(crossed)
+    assert audit['passed'] and audit['undotted_crossings']==1
+    dotted = crossed.replace('</svg>', '<circle cx="10" cy="10" data-junction-net="A"/></svg>')
+    assert not audit_routes(dotted)['passed']
+    assert not audit_routes(crossed.replace('M 0 10 H 20','M 10 10 H 20'))['passed']

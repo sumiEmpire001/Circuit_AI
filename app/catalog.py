@@ -49,7 +49,7 @@ CATALOG.update({
  'pnp': part('Generic PNP transistor','custom',{'B':'input','C':'passive','E':'passive'},('B','C','E')),
  'pmos': part('Generic P-channel MOSFET','custom',{'G':'input','D':'passive','S':'passive'},('G','D','S')),
  'relay_spdt': part('Generic SPDT relay (coil rating required)','custom',{'COIL1':'passive','COIL2':'passive','COM':'passive','NO':'passive','NC':'passive'},('COIL1','COIL2','COM')),
- 'dc_motor': part('Brushed DC motor (rating required)','custom',{'+':'passive','-':'passive'},('+','-')),
+ 'dc_motor': part('Brushed DC motor (rating required)','motor',{'+':'passive','-':'passive'},('+','-')),
  'fuse': part('Fuse (rating required)','custom',{'1':'passive','2':'passive'},('1','2')),
 })
 
@@ -61,4 +61,23 @@ CATALOG.update({
      {'EN12':'input','IN1':'input','OUT1':'output','GND1':'ground','GND2':'ground','OUT2':'output','IN2':'input','VCC2':'power_in','EN34':'input','IN3':'input','OUT3':'output','GND3':'ground','GND4':'ground','OUT4':'output','IN4':'input','VCC1':'power_in'},('EN12','EN34','GND1','GND2','GND3','GND4','VCC1','VCC2'),source='https://www.ti.com/product/L293D'),
  'lm35': part('LM35 analog temperature sensor','custom',
      {'VS':'power_in','VOUT':'output','GND':'ground'},('VS','VOUT','GND'),source='https://www.ti.com/product/LM35'),
+})
+
+# Texas Instruments PDIP pin numbers, with logical pin names displayed.
+CATALOG.update({
+    'sn74hc14n': dict(part(
+        'SN74HC14N Schmitt-trigger inverter (PDIP-14)', 'custom',
+        {str(i): role for i, role in enumerate((
+            'input','output','input','output','input','output','ground',
+            'output','input','output','input','output','input','power_in',
+        ), 1)}, ('7','14'), source='https://www.ti.com/lit/ds/symlink/sn74hc14.pdf'),
+        pin_labels=dict(zip(map(str, range(1,15)),
+            ('1A','1Y','2A','2Y','3A','3Y','GND','4Y','4A','5Y','5A','6Y','6A','VCC')))),
+    'lm358n': dict(part(
+        'LM358N dual operational amplifier (PDIP-8)', 'custom',
+        {'1':'output','2':'input','3':'input','4':'passive',
+         '5':'input','6':'input','7':'output','8':'power_in'}, ('4','8'),
+        source='https://www.ti.com/lit/ds/symlink/lm358-n.pdf'),
+        pin_labels=dict(zip(map(str, range(1,9)),
+            ('OUT1','IN1-','IN1+','V-','IN2+','IN2-','OUT2','V+')))),
 })

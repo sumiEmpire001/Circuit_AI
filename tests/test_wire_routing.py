@@ -39,3 +39,15 @@ def test_live_contract_three_component_prompt():
     assert not result['validation']['errors']
     assert len(result['routed_nets'])==3
     assert result['unrouted_nets']==[]
+
+def test_motor_position_follows_control_signal_direction():
+    from app.design_examples import temperature_motor
+    from app.multi_render import layout
+
+    d = temperature_motor()
+    boxes, points = layout(d)
+    x = [boxes[ref][0] for ref in ('S1','U1','U2','M1')]
+    assert x == sorted(set(x))
+    assert all(points[f'U2.{pin}'][2]=='left' for pin in ('EN12','IN1','IN2'))
+    assert all(points[f'U2.{pin}'][2]=='right' for pin in ('OUT1','OUT2'))
+    assert points['M1.+'][2]=='left'

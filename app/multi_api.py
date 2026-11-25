@@ -42,13 +42,9 @@ def builtin_design(prompt):
     clean=prompt.strip().lower().rstrip('.')
     if clean in {'arduino uno with a 16x2 lcd','arduino uno + 16x2 lcd','controller_lcd','create an arduino uno with a 16x2 lcd'}:
         return EXAMPLES['controller_lcd']()
-    if clean in {'two-stage rc filter','rc_ladder'}: return EXAMPLES['rc_ladder']()
-    if clean=='temperature_motor': return EXAMPLES['temperature_motor']()
-    if clean=='bridge_rectifier': return EXAMPLES['bridge_rectifier']()
-    if clean=='mega_ldr_servo': return EXAMPLES['mega_ldr_servo']()
-    if clean=='mega_ldr': return EXAMPLES['mega_ldr']()
+    if clean=='two-stage rc filter': return EXAMPLES['rc_ladder']()
+    if clean in EXAMPLES: return EXAMPLES[clean]()
     if clean in {'5v led with 330 ohm resistor','three component led circuit'}: return led_bank(1)
-    if clean=='led_bank': return EXAMPLES['led_bank']()
     match=re.fullmatch(r'(?:create )?(\d{1,2})[- ](?:channel )?led bank',clean)
     if match:
         count=int(match[1])
@@ -86,7 +82,7 @@ def result_for(design,image_format='svg'):
         png=resvg_py.svg_to_bytes(svg_string=svg,zoom=zoom,font_files=[str(Path(__file__).with_name('fonts')/'SchematicSans.ttf')])
         image={'mime_type':'image/png','base64':base64.b64encode(png).decode()}
     return dict(schema_version='2.0',design=data,validation=validation,image=image,
-                routing='Continuous bus routes where feasible; matching labels connect unrouted nets. Wire gaps mark nonconnecting crossings.',
+                routing='Continuous wire routes where feasible; matching labels connect unrouted nets. Interior wire crossings connect only at junction dots.',
                 routing_audit=routing_audit,
                 routed_nets=sorted(route_names(svg)),
                 unrouted_nets=sorted(set(n.name for n in design.nets)-route_names(svg)),
@@ -97,9 +93,9 @@ def studio(): return Path(__file__).with_name('studio.html').read_text()
 
 @router.get('/v2/catalog')
 def catalog():
-    return dict(version='0.3.0',parts=CATALOG,limits=dict(components=200,nets=1000,custom_parts=100,pins_per_custom_part=64),
+    return dict(version='0.4.0',parts=CATALOG,limits=dict(components=200,nets=1000,custom_parts=100,pins_per_custom_part=64),
                 ai_configured=True,
-                notes='Generic device symbols use logical terminal names, not manufacturer package pin numbers.')
+                notes='Definitions with pin_labels use the cited package pin numbers. Generic symbols use logical terminal names.')
 
 @router.get('/v2/examples')
 def examples(): return {k:f().model_dump(exclude_none=True) for k,f in EXAMPLES.items()}

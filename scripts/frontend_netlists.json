@@ -1,0 +1,94 @@
+{
+  "led": {
+    "VCC": "V1.+ R1.1",
+    "LED_1": "R1.2 D1.A",
+    "GND": "D1.K V1.-"
+  },
+  "rc": {
+    "IN": "V1.+ R1.1",
+    "MID": "R1.2 R2.1 C1.1",
+    "OUT": "R2.2 C2.1",
+    "GND": "V1.- C1.2 C2.2"
+  },
+  "bridge": {
+    "AC1": "J1.1 D1.K D2.A",
+    "AC2": "J1.2 D3.K D4.A",
+    "DC_POS": "D2.K D4.K C1.2 J2.1",
+    "DC_NEG": "D1.A D3.A C1.1 J2.2"
+  },
+  "lcd": {
+    "VCC": "V1.+ U1.5V LCD1.2 RV1.1 R1.1",
+    "GND": "V1.- U1.GND LCD1.1 LCD1.5 LCD1.16 RV1.2",
+    "CONTRAST": "RV1.W LCD1.3",
+    "BACKLIGHT": "R1.2 LCD1.15",
+    "RS": "U1.D12 LCD1.4",
+    "ENABLE": "U1.D11 LCD1.6",
+    "DATA4": "U1.D5 LCD1.11",
+    "DATA5": "U1.D4 LCD1.12",
+    "DATA6": "U1.D3 LCD1.13",
+    "DATA7": "U1.D2 LCD1.14"
+  },
+  "servo": {
+    "VCC": "V1.+ U1.5V LDR1.1",
+    "SENSE": "LDR1.2 R1.1 U1.A0",
+    "GND": "V1.- U1.GND R1.2 V2.- M1.GND",
+    "SERVO_PWR": "V2.+ M1.VCC",
+    "SERVO_SIG": "U1.D9 M1.SIG"
+  },
+  "ledbank": {
+    "VCC": "V1.+ R1.1 R2.1 R3.1 R4.1",
+    "GND": "V1.- D1.K D2.K D3.K D4.K",
+    "LED_1": "R1.2 D1.A",
+    "LED_2": "R2.2 D2.A",
+    "LED_3": "R3.2 D3.A",
+    "LED_4": "R4.2 D4.A"
+  },
+  "temperature_motor": {
+    "LOGIC_5V": "V1.+ U1.5V U2.VCC1 S1.VS C1.1",
+    "MOTOR_6V": "V2.+ U2.VCC2 C2.1",
+    "GND": "V1.- V2.- U1.GND U2.GND1 U2.GND2 U2.GND3 U2.GND4 U2.EN34 U2.IN3 U2.IN4 S1.GND C1.2 C2.2",
+    "TEMP": "S1.VOUT U1.A0",
+    "PWM": "U1.D9 U2.EN12",
+    "DIR1": "U1.D7 U2.IN1",
+    "DIR2": "U1.D8 U2.IN2",
+    "MOTOR_A": "U2.OUT1 M1.+",
+    "MOTOR_B": "U2.OUT2 M1.-"
+  },
+  "ldr": {
+    "VCC": "V1.+ U1.5V LDR1.1",
+    "SENSE": "LDR1.2 R1.1 U1.A0",
+    "GND": "V1.- U1.GND R1.2"
+  },
+  "schmitt_inverter": {
+    "LOGIC_IN": "J1.1 U1.1",
+    "LOGIC_OUT": "U1.2 J2.1",
+    "VCC": "V1.+ U1.14 C1.1",
+    "GND": "V1.- U1.7 C1.2 J1.2 J2.2 U1.3 U1.5 U1.9 U1.11 U1.13"
+  },
+  "unseen_buffer": {
+    "VCC": "V1.+ U1.8 C1.1",
+    "GND": "V1.- U1.4 C1.2 J1.2 J2.2 U1.5",
+    "INPUT": "J1.1 U1.3",
+    "FOLLOWER": "U1.1 U1.2 J2.1",
+    "UNUSED_FEEDBACK": "U1.7 U1.6"
+  },
+  "unseen_dual_filter": {
+    "SUPPLY": "V1.+ R1.1 R3.1",
+    "RETURN": "V1.- C1.2 C2.2 J1.2",
+    "STAGE1": "R1.2 R2.1 C1.1",
+    "SENSE": "R2.2 J1.1",
+    "SECOND": "R3.2 C2.1"
+  },
+  "unseen_dual_load": {
+    "SUPPLY": "V1.+ R1.1 R2.1",
+    "FIRST": "R1.2 D1.A",
+    "SECOND": "R2.2 D2.A",
+    "SINK1": "D1.K Q1.C",
+    "SINK2": "D2.K Q2.C",
+    "BASE1": "R3.2 Q1.B",
+    "BASE2": "R4.2 Q2.B",
+    "INPUT1": "J1.1 R3.1",
+    "INPUT2": "J1.2 R4.1",
+    "RETURN": "V1.- Q1.E Q2.E J1.3"
+  }
+}

@@ -28,3 +28,18 @@ def test_rc_layout_permutations():
     d=rc_ladder()
     for order in permutations(d.components):
         check(d.model_copy(update={'components':list(order)}))
+
+def test_repeated_led_branches_have_continuous_rails_after_position_round_trip():
+    from app.design import Design
+    from app.design_examples import led_bank
+
+    d = led_bank(32)
+    svg, boxes, _, audit = render_repaired(d, check_design(d))
+    assert len(audit['continuous_nets'])==34
+    assert audit['undotted_crossings']==0
+    exported = d.model_dump()
+    for component in exported['components']:
+        x, y, _, _ = boxes[component['ref']]
+        component['position'] = {'x': x, 'y': y}
+    restored = Design.model_validate(exported)
+    assert render_repaired(restored, check_design(restored))[3]==audit
