@@ -45,3 +45,17 @@ def mega_ldr_servo():
     d['notes'] += ['Use a separate regulated supply sized for servo stall current; verify servo accepts 5 V and Mega logic. Grounds are common; positive rails are separate. Firmware is not generated.']
     return Design.model_validate(d)
 EXAMPLES['mega_ldr_servo']=mega_ldr_servo
+
+def bridge_rectifier():
+    # User reference 1: four diodes and output bypass capacitor.
+    components=[dict(ref=ref,part='diode',value='1N4007',position={'x':x,'y':y}) for ref,x,y in [('D1',210,380),('D2',710,380),('D3',210,620),('D4',710,620)]]
+    components += [dict(ref='J1',part='connector2',value='Isolated low-voltage AC input',position={'x':460,'y':130}),
+                   dict(ref='C1',part='capacitor',value='100 nF',position={'x':460,'y':860}),
+                   dict(ref='J2',part='connector2',value='DC output: 1 positive, 2 negative',position={'x':460,'y':1100})]
+    return Design(title='Four-diode bridge rectifier',components=components,nets=[
+        dict(name='AC1',pins=['J1.1','D1.K','D2.A']),
+        dict(name='AC2',pins=['J1.2','D3.K','D4.A']),
+        dict(name='DC_POS',pins=['D2.K','D4.K','C1.2','J2.1']),
+        dict(name='DC_NEG',pins=['D1.A','D3.A','C1.1','J2.2'])],
+        notes=['Topology transcribed from user reference image 1. Use isolated low-voltage AC only. Verify diode and capacitor ratings. 100 nF is a bypass capacitor, not necessarily adequate for bulk smoothing. No simulation or hardware verification.'])
+EXAMPLES['bridge_rectifier']=bridge_rectifier
