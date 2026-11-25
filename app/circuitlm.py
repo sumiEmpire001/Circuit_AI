@@ -48,7 +48,7 @@ def draft_local(prompt, previous_design=None):
     approved = {
         'controller_lcd': {'arduino uno with a 16x2 lcd','connect uno to parallel lcd','wire lcd to uno','arduino uno hd44780 parallel display'},
         'led_bank': {'four channel led bank','4 channel led bank'},
-        'rc_ladder': {'two stage rc filter','two stage passive rc filter','cascade rc ladder'},
+        'rc_ladder': {'two stage rc filter','two stage passive rc filter','cascade rc ladder', "create a two stage rc low pass filter using a 5v dc source a 1 kohm resistor r1 a 2 2 kohm resistor r2 and two 100 nf capacitors c1 and c2 connect v1 positive to r1 r1 to r2 and c1 r2 to c2 and both capacitor returns to v1 negative show the output at r2 and c2 and draw junction dots"},
     }
     normalized = ' '.join(tokens(prompt))
     if normalized not in approved.get(label, set()):
