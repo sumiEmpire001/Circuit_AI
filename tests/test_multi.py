@@ -140,3 +140,10 @@ def test_max_component_layout_can_be_reimported():
     from app.multi_api import result_for
     result=result_for(d)
     assert len(Design.model_validate(result['design']).components)==200
+
+
+def test_local_value_revision():
+    r=client.post('/v2/draft',json={'prompt':'change R1 to 330 ohm','parser':'local','previous_design':data()})
+    assert r.status_code==200
+    assert next(c for c in r.json()['design']['components'] if c['ref']=='R1')['value']=='330 ohm'
+    assert r.json()['design']['nets']==data()['nets']
