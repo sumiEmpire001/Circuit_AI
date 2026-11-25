@@ -43,21 +43,48 @@ def render_design(design,validation):
 <rect width="100%" height="100%" fill="#eeeedb"/><rect width="100%" height="100%" fill="url(#grid)"/>
 <style>text{{font-family:DejaVu Sans,sans-serif;fill:#303d2b;font-size:12px}}.wire{{fill:none;stroke:#285b36;stroke-width:1.7}}.symbol{{fill:none;stroke:#874d3d;stroke-width:2}}.label{{font-size:11px;fill:#285b36}}.pin{{font-size:10px;fill:#874d3d}}.component{{cursor:move}}</style>
 <text x="30" y="30" style="font-size:20px">{escape(design.title)}</text>
-<text x="30" y="54">DRAFT • {len(validation['errors'])} ERC errors • Not simulated • Matching net labels are connected</text>''']
+<text x="30" y="54">DRAFT • {len(validation['errors'])} ERC errors • Not simulated • Matching net labels are connected; crossings without junction dots are not connected</text>''']
     def line(d,cls='symbol',attrs=''):
         parts.append(f'<path d="{d}" class="{cls}" {attrs}/>')
     def text(x,y,s,cls='',anchor='start'):
         parts.append(f'<text x="{x}" y="{y}" class="{cls}" text-anchor="{anchor}">{escape(str(s))}</text>')
-    # Draw only unambiguous direct links across a free corridor. All endpoints
-    # also carry net labels, so complex/multi-drop nets remain fully specified.
-    for net in design.nets:
-        if len(net.pins)!=2: continue
-        a,b=[points[p] for p in net.pins]
-        if a[0]>b[0]: a,b=b,a
-        if a[2]!='right' or b[2]!='left' or a[0]>=b[0]: continue
-        if a[1]!=b[1]: continue
-        blocked=any(x<a[0] and x+w>a[0] or (x<b[0] and x+w>a[0] and y-15<=a[1]<=y+h+15) for x,y,w,h in boxes.values() if x>a[0])
-        if not blocked: line(f'M {a[0]} {a[1]} H {b[0]}','wire',f'data-net="{escape(net.name)}"')
+    # Route each net on its own horizontal bus below all component bodies.
+    # Vertical branches use unique x tracks; crossings are explicitly not junctions.
+    # A branch is omitted if its escape corridor would intersect another body.
+    # Such nets retain labels rather than displaying a misleading partial wire.
+    routes=[]
+    occupied=set()
+    for index,net in enumerate(design.nets):
+        bus=height+40+index*24
+        branches=[]
+        for pin in net.pins:
+            px,py,side=points[pin]
+            direction=-1 if side=='left' else 1
+            chosen=None
+            for offset in range(12,181,8):
+                tx=px+direction*offset
+                if tx<20 or tx in occupied or any(t==tx for _,_,t in branches): continue
+                if any(min(px,tx)<x+w+5 and max(px,tx)>x-5 and y-5<=py<=y+h+5 for x,y,w,h in boxes.values()): continue
+                if any(x-5<=tx<=x+w+5 and y+h+5>=py for x,y,w,h in boxes.values()): continue
+                chosen=tx;break
+            if chosen is None: break
+            branches.append((px,py,chosen))
+        if len(branches)!=len(net.pins): continue
+        occupied.update(t for _,_,t in branches)
+        routes.append((net.name,bus,branches))
+    for name,bus,branches in routes:
+        attrs=f'data-route-net="{escape(name)}"'
+        xs=[t for _,_,t in branches]
+        line(f'M {min(xs)} {bus} H {max(xs)}','wire',attrs)
+        for px,py,tx in branches:
+            line(f'M {px} {py} H {tx} V {bus}','wire',attrs)
+            if min(xs)<tx<max(xs):
+                parts.append(f'<circle cx="{tx}" cy="{bus}" r="3.5" fill="#285b36" data-junction-net="{escape(name)}"/>')
+    # Extend canvas to include buses; preserve component positions.
+    if routes:
+        newheight=max(bus for _,bus,_ in routes)+65
+        parts[0]=parts[0].replace(f'height="{height}" viewBox="0 0 {width} {height}"',f'height="{newheight}" viewBox="0 0 {width} {newheight}"')
+        height=newheight
     pin_net={p:n.name for n in design.nets for p in n.pins}
     for c in design.components:
         x,y,w,h=boxes[c.ref]; spec=cat[c.part]; kind=spec['symbol'];cy=y+70
