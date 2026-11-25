@@ -16,6 +16,7 @@ from app.circuitlm import draft_local
 from app.design import Design, Strict, check_design
 from app.design_examples import EXAMPLES, led_bank
 from app.multi_render import render_design
+from app.route_guard import audit_routes
 
 router=APIRouter()
 
@@ -74,6 +75,7 @@ async def ai_design(req):
 def result_for(design,image_format='svg'):
     validation=check_design(design)
     svg,boxes,size=render_design(design,validation)
+    routing_audit=audit_routes(svg)
     # Persist positions to make drag/edit/import round trips deterministic.
     data=design.model_dump(exclude_none=True)
     for c in data['components']:
@@ -85,6 +87,7 @@ def result_for(design,image_format='svg'):
         image={'mime_type':'image/png','base64':base64.b64encode(png).decode()}
     return dict(schema_version='2.0',design=data,validation=validation,image=image,
                 routing='Continuous bus routes where feasible; matching labels connect unrouted nets. Wire gaps mark nonconnecting crossings.',
+                routing_audit=routing_audit,
                 routed_nets=sorted(set(re.findall(r'data-route-net="([^"]+)"',svg))),
                 unrouted_nets=sorted(set(n.name for n in design.nets)-set(re.findall(r'data-route-net="([^"]+)"',svg))),
                 bill_of_materials=[dict(ref=c.ref,part=c.part,value=c.value) for c in design.components])
