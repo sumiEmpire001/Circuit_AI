@@ -25,7 +25,23 @@ def classify(prompt):
 def draft_local(prompt, previous_design=None):
     from app.design_examples import EXAMPLES
     if previous_design is not None:
-        raise ValueError('Conversational revisions are not supported by this baseline; edit the tables directly.')
+        # Explicit bounded value edit; no topology changes or silent constraint drops.
+        match = re.fullmatch(r'change ([A-Za-z][A-Za-z0-9_+-]*) to ([0-9]+(?:\.[0-9]+)? (?:ohm|kohm|nF|uF|pF))', prompt.strip(), re.I)
+        if not match:
+            raise ValueError('Use change R1 to 330 ohm, or edit the tables directly.')
+        ref, value = match.groups()
+        from app.design import Design
+        data = previous_design.model_dump()
+        for component in data['components']:
+            if component['ref'].lower() == ref.lower():
+                unit = value.split()[-1].lower()
+                if not ((component['part']=='resistor' and unit in {'ohm','kohm'}) or (component['part']=='capacitor' and unit in {'nf','uf','pf'})):
+                    raise ValueError('Value unit does not match supported component type.')
+                if float(value.split()[0]) <= 0:
+                    raise ValueError('Value must be positive.')
+                component['value'] = value
+                return Design.model_validate(data)
+        raise ValueError('Unknown component reference.')
     label = classify(prompt)
     # Classifier alone cannot prove that every constraint is supported.
     # Only exact reviewed aliases are accepted until constraint extraction is trained.
