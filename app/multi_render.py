@@ -33,7 +33,7 @@ def layout(design):
                 points[f'{c.ref}.{pin}']=(x-28 if side=='left' else x+w+28,y+(118 if spec['symbol']=='lcd' else 70)+i*22,side)
     return boxes,points
 
-def render_design(design,validation):
+def render_design(design,validation,route_order=None):
     cat=design.catalog();boxes,points=layout(design)
     width=max(x+w+200 for x,y,w,h in boxes.values());height=max(y+h+100 for x,y,w,h in boxes.values())
     width=max(width,900);height=max(height,450)
@@ -57,7 +57,7 @@ def render_design(design,validation):
     horizontal=[]
     vertical=[]
     pin_positions={(p[0],p[1]) for p in points.values()}
-    for index,net in enumerate(design.nets):
+    for index,net in enumerate(design.nets if route_order is None else route_order):
         bus=height+40+index*24
         branches=[]
         for pin in net.pins:
