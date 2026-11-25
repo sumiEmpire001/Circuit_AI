@@ -23,3 +23,16 @@ CATALOG = {
      'https://docs.arduino.cc/learn/electronics/lcd-displays/'),
 }
 LCD_LABELS = dict(zip(map(str,range(1,17)), ['VSS','VDD','VO','RS','RW','E','D0','D1','D2','D3','D4','D5','D6','D7','A','K']))
+
+# Additional logical interfaces; package-specific ratings require datasheet review.
+CATALOG.update({
+ 'ldr': part('Photoresistor (LDR)', 'resistor', {'1':'passive','2':'passive'}, ('1','2')),
+ 'thermistor': part('Generic thermistor', 'resistor', {'1':'passive','2':'passive'}, ('1','2')),
+ 'connector3': part('Three-pin connector', 'connector', {'1':'passive','2':'passive','3':'passive'}),
+ 'connector4': part('Four-pin connector', 'connector', {str(i):'passive' for i in range(1,5)}),
+ 'arduino_mega': part('Arduino Mega 2560 Rev3 (logical headers)', 'controller',
+     {'5V':'power_in','GND':'ground', **{f'D{i}':'bidirectional' for i in range(54)}, **{f'A{i}':'bidirectional' for i in range(16)}},
+     ('5V','GND'), 5.0, 'https://docs.arduino.cc/hardware/mega-2560/'),
+ 'servo_generic': part('Generic RC servo (verify model voltage and current)', 'custom',
+     {'VCC':'power_in','GND':'ground','SIG':'input'}, ('VCC','GND','SIG')),
+})
