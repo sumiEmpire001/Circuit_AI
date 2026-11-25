@@ -36,3 +36,19 @@ CATALOG.update({
  'servo_generic': part('Generic RC servo (verify model voltage and current)', 'custom',
      {'VCC':'power_in','GND':'ground','SIG':'input'}, ('VCC','GND','SIG')),
 })
+
+# Logical module interfaces, not physical connector order.
+CATALOG.update({
+ 'lcd1602_i2c_5v': part('16x2 LCD with 5 V I2C backpack', 'custom',
+     {'VCC':'power_in','GND':'ground','SDA':'bidirectional','SCL':'bidirectional'}, ('VCC','GND','SDA','SCL'),5.0),
+ 'ssd1306_i2c_3v3': part('SSD1306 I2C OLED (3.3 V interface)', 'custom',
+     {'VCC':'power_in','GND':'ground','SDA':'bidirectional','SCL':'bidirectional'}, ('VCC','GND','SDA','SCL'),3.3),
+ 'pushbutton': part('Momentary normally-open pushbutton','switch',{'1':'passive','2':'passive'},('1','2')),
+ 'piezo_passive': part('Passive piezo transducer','custom',{'1':'passive','2':'passive'},('1','2')),
+ 'capacitor_polarized': part('Polarized capacitor','capacitor',{'+':'passive','-':'passive'},('+','-')),
+ 'pnp': part('Generic PNP transistor','custom',{'B':'input','C':'passive','E':'passive'},('B','C','E')),
+ 'pmos': part('Generic P-channel MOSFET','custom',{'G':'input','D':'passive','S':'passive'},('G','D','S')),
+ 'relay_spdt': part('Generic SPDT relay (coil rating required)','custom',{'COIL1':'passive','COIL2':'passive','COM':'passive','NO':'passive','NC':'passive'},('COIL1','COIL2','COM')),
+ 'dc_motor': part('Brushed DC motor (rating required)','custom',{'+':'passive','-':'passive'},('+','-')),
+ 'fuse': part('Fuse (rating required)','custom',{'1':'passive','2':'passive'},('1','2')),
+})
