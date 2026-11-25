@@ -231,5 +231,17 @@
     "For a prototype, build a lithium battery charging controller; show power and signal connections.",
     "Draw a circuit to build a lithium battery charging controller and identify each junction.",
     "My task is to build a lithium battery charging controller; provide a schematic."
+  ],
+  "bridge_rectifier": [
+    "four diode bridge rectifier",
+    "full wave bridge rectifier with 1n4007 diodes",
+    "connect four rectifier diodes to an ac input and dc output",
+    "bridge rectifier with 100 nf output capacitor",
+    "four 1n4007 diodes and two terminal blocks",
+    "full wave diode bridge with common cathode positive output and common anode negative output",
+    "draw the ac to dc full wave rectifier circuit",
+    "seven component bridge rectifier with bypass capacitor",
+    "two ac terminals four rectifier diodes and a dc output connector",
+    "use four 1n4007 diodes in a bridge with a capacitor across the output"
   ]
 }
