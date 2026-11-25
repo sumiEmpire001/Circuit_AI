@@ -43,6 +43,7 @@ def builtin_design(prompt):
     if clean in {'arduino uno with a 16x2 lcd','arduino uno + 16x2 lcd','controller_lcd','create an arduino uno with a 16x2 lcd'}:
         return EXAMPLES['controller_lcd']()
     if clean in {'two-stage rc filter','rc_ladder'}: return EXAMPLES['rc_ladder']()
+    if clean=='mega_ldr': return EXAMPLES['mega_ldr']()
     if clean=='led_bank': return EXAMPLES['led_bank']()
     match=re.fullmatch(r'(?:create )?(\d{1,2})[- ](?:channel )?led bank',clean)
     if match:
