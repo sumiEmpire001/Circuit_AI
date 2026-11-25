@@ -16,8 +16,10 @@ CASES=[
  ('temperature_motor','builtin','temperature_motor',8,9),
 ]
 FIXTURES = json.loads(Path(__file__).with_name('frontend_netlists.json').read_text())
+IMAGE_PROMPT = json.loads((Path(__file__).resolve().parents[1] / 'training/corpus_v1.json').read_text())['at89c51_lcd'][1]
 REFERENCE_CASES = {'rc_long':'rc', 'bridge_long':'bridge', 'temperature_motor_local':'temperature_motor'}
 CASES += [
+    ('at89c51_lcd','local',IMAGE_PROMPT,9,16),
     ('temperature_motor_local','local','Control a 6V DC motor using an Arduino Uno, LM35 temperature sensor and L293D driver.',8,9),
     ('ldr','local','Arduino Mega with an LDR light sensor',4,3),
     ('schmitt_inverter','local','Make a 5V SN74HC14N inverter with input and output connectors.',5,4),

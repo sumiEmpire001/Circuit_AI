@@ -76,6 +76,12 @@ def layout(design):
         if c.part=='arduino_uno':
             left=['5V','GND']+[f'A{i}' for i in range(6)]
             right=['D12','D11','D5','D4','D3','D2']+[f'D{i}' for i in [0,1,6,7,8,9,10,13]]
+        elif c.part=='at89c51_pdip40':
+            left=['40','19','18','9','31','20','29','30',*map(str,range(32,40)),*map(str,range(10,18))]
+            right=[*map(str,range(1,9)),'22','23','21',*map(str,range(24,29))]
+        elif c.part=='lm016l':
+            left=[*map(str,range(7,15)),'4','6','1','2','3','5']
+            right=[]
         elif c.part=='lcd1602':
             left=['4','6','11','12','13','14','1','2','3','5']; right=['7','8','9','10','15','16']
         elif c.part=='uln2003a': left=[f'IN{i}' for i in range(1,8)]+['E']; right=[f'OUT{i}' for i in range(1,8)]+['COM']
@@ -197,6 +203,9 @@ def render_design(design,validation,route_order=None):
                     line(f'M {x+78} {cy-40} l 16 18 m -9 -2 l 9 2 l -1 -9 M {x+110} {cy-40} l 16 18 m -9 -2 l 9 2 l -1 -9')
                 elif kind=='thermistor':
                     line(f'M {x+85} {cy+22} L {x+145} {cy-22} h 12')
+            elif kind=='crystal':
+                line(f'M {x+70} {cy} H {x+96} M {x+96} {cy-17} V {cy+17} M {x+134} {cy-17} V {cy+17} M {x+134} {cy} H {x+160}')
+                parts.append(f'<rect class="symbol" x="{x+104}" y="{cy-14}" width="22" height="28"/>')
             elif kind=='capacitor':
                 line(f'M {x+70} {cy} H {x+105} M {x+105} {cy-20} V {cy+20} M {x+125} {cy-20} V {cy+20} M {x+125} {cy} H {x+160}')
             elif kind in ('led','diode'):
@@ -216,7 +225,7 @@ def render_design(design,validation,route_order=None):
                 parts.append('</g>')
             if kind=='motor':
                 text(x+115,cy+4,'M',anchor='middle')
-            elif kind not in {'resistor','ldr','thermistor','capacitor','led','diode','source','switch','inductor'}:
+            elif kind not in {'resistor','ldr','thermistor','capacitor','led','diode','source','switch','inductor','crystal'}:
                 text(x+115,cy+4,spec['name'][:12],anchor='middle')
         elif kind=='pot':
             line(f'M {x} {cy} H {x+70} M {x+160} {cy} H {x+w}','wire')

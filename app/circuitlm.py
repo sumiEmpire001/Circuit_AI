@@ -30,6 +30,7 @@ def classify(prompt):
 
 def draft_local(prompt, previous_design=None):
     from app.design_examples import EXAMPLES
+    from app.image_reference import LCD_PROMPTS
     if previous_design is not None:
         # Explicit bounded value edit; no topology changes or silent constraint drops.
         match = re.fullmatch(r'change ([A-Za-z][A-Za-z0-9_+-]*) to ([0-9]+(?:\.[0-9]+)? (?:ohm|kohm|nF|uF|pF))', prompt.strip(), re.I)
@@ -52,6 +53,7 @@ def draft_local(prompt, previous_design=None):
     # Classifier alone cannot prove that every constraint is supported.
     # Only exact reviewed aliases are accepted until constraint extraction is trained.
     approved = {
+        'at89c51_lcd': {' '.join(tokens(alias)) for alias in LCD_PROMPTS},
         'bridge_rectifier': {'four diode bridge rectifier', "create a full wave bridge rectifier using four 1n4007 diodes d1 d2 d3 d4 a 100 nf capacitor c1 a two pin isolated low voltage ac input j1 and a two pin dc output j2 connect j1 pin 1 to d1 cathode and d2 anode j1 pin 2 to d3 cathode and d4 anode d2 and d4 cathodes to positive output j2 pin 1 and c1 pin 2 and d1 and d3 anodes to negative output j2 pin 2 and c1 pin 1"},
         'temperature_motor': {
             'arduino temperature controlled motor',

@@ -82,12 +82,12 @@ def check_design(design):
         if c.part=='dc_source' and (voltage(c.value) is None or not 0<voltage(c.value)<=24): issue(c.ref,'supply_range','Use an explicit DC supply between 0 and 24 V',True)
     # Reference-mode LCD checks: RW must share the LCD ground in write-only mode.
     for c in design.components:
-        if c.part=='lcd1602':
+        if c.part in {'lcd1602','lm016l'}:
             g=pin_net.get(f'{c.ref}.1')
             rw=pin_net.get(f'{c.ref}.5')
             if g is not None and rw is not None and g!=rw:
                 issue(c.ref,'lcd_rw_ground','This write-only LCD definition requires RW connected to VSS',True)
-            for pin in ('15','16'):
+            for pin in ('15','16') if c.part=='lcd1602' else ():
                 if f'{c.ref}.{pin}' not in pin_net:
                     issue(c.ref,'lcd_backlight_unconnected','Backlight terminal unconnected; display illumination is not assured')
         if c.part=='servo_generic':

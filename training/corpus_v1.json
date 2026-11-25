@@ -302,5 +302,23 @@
     "7400 series hc14 inverter circuit with power and ground",
     "wire first schmitt inverter gate on sn74hc14 package",
     "sn74hc14 input conditioning inverting reference design"
+  ],
+  "at89c51_lcd": [
+    "AT89C51 with an 8-bit LM016L LCD",
+    "Create an AT89C51 PDIP-40 schematic with a 5 V supply and a 14-pin LM016L LCD in 8-bit write-only mode. Connect P1.0 through P1.7 to LCD D0 through D7 in order. Connect P2.1 to LCD RS and P2.2 to LCD E. Ground LCD RW. Tie EA high to use internal program memory. Add a 12 MHz crystal between XTAL1 and XTAL2 with a 33 pF capacitor from each crystal pin to ground. Add a 10 uF capacitor from 5 V to the active-high reset node and a 10 kohm resistor from reset to ground. Use a 10 kohm potentiometer between 5 V and ground and connect its wiper to LCD contrast. Keep the LCD data lines in order and show power, reset, and oscillator as separate groups.",
+    "drive an lm016l with port one of the at89c51 in eight bit mode",
+    "draw the 8051 clock reset and parallel character lcd blocks",
+    "display wiring on an at89c51 with lcd control from p2 1 and p2 2",
+    "at89c51 eight data lines with lcd enable and register select",
+    "lm016l eight bit bus and grounded rw on 8051",
+    "the at89c51 oscillator uses xtal1 xtal2 and two 33 pf loads",
+    "use 8051 internal program memory with ea tied to vcc and lcd on port one",
+    "at89c51 pdip with resistor capacitor reset and 16 by 2 lcd",
+    "write only lm016l schematic driven through the at89c51 port1 pins",
+    "group an 8051 quartz oscillator active high reset and lm016l display",
+    "show at89c51 data bits d0 to d7 without merging the lcd nets",
+    "at89c51 clock and power rails beside the lcd wiring",
+    "atmel 8051 full parallel byte interface to a hitachi lm016l",
+    "connect 8051 p1 0 through p1 7 to a 14 pin lm016l"
   ]
 }

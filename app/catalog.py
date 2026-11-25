@@ -81,3 +81,27 @@ CATALOG.update({
         pin_labels=dict(zip(map(str, range(1,9)),
             ('OUT1','IN1-','IN1+','V-','IN2+','IN2-','OUT2','V+')))),
 })
+
+# AT89C51 and the original 14-terminal LM016L display.
+CATALOG.update({
+    'at89c51_pdip40': dict(part(
+        'AT89C51 (PDIP-40)', 'controller',
+        {**{str(i): 'bidirectional' for i in (*range(1,9), *range(10,18), *range(21,29), *range(32,40))},
+         '9':'input', '18':'output', '19':'input', '20':'ground',
+         '29':'output', '30':'output', '31':'input', '40':'power_in'},
+        ('9','18','19','20','31','40'), 5.0,
+        'https://ww1.microchip.com/downloads/en/DeviceDoc/doc0265.pdf'),
+        pin_labels={**{str(i+1):f'P1.{i}' for i in range(8)},
+                    **{str(i+10):f'P3.{i}' for i in range(8)},
+                    **{str(i+21):f'P2.{i}' for i in range(8)},
+                    **{str(39-i):f'P0.{i}' for i in range(8)},
+                    '9':'RST', '18':'XTAL2', '19':'XTAL1', '20':'GND',
+                    '29':'PSEN', '30':'ALE', '31':'EA', '40':'VCC'}),
+    'lm016l': dict(part(
+        'Hitachi LM016L 16×2 LCD (8-bit)', 'lcd',
+        {'1':'ground','2':'power_in',**{str(i):'input' for i in range(3,15)}},
+        tuple(map(str,range(1,15))), 5.0,
+        'https://www.bitsavers.org/components/hitachi/_dataBooks/1987_Hitachi_Liquid_Crystal_Display_Modules.pdf'),
+        pin_labels={str(i):LCD_LABELS[str(i)] for i in range(1,15)}),
+    'crystal': part('Quartz crystal', 'crystal', {'1':'passive','2':'passive'}, ('1','2')),
+})

@@ -101,7 +101,7 @@ def route_parallel_led(design, validation):
 
 def route_grid(design,validation,allow_crossings=False, rails_first=False):
     boxes,points=layout(design)
-    if len(points)>100 or sum(len(n.pins) for n in design.nets)>40:
+    if len(points)>100 or sum(len(n.pins) for n in design.nets)>48:
         return None
     svg,boxes,size=render_design(design,validation,route_order=[])
     width,height=size

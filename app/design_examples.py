@@ -1,4 +1,5 @@
 from app.design import Design
+from app.image_reference import at89c51_lcd
 
 def controller_lcd():
     components=[dict(ref='U1',part='arduino_uno',value='Uno R3 / USB power'),dict(ref='LCD1',part='lcd1602',value='5 V HD44780-compatible'),dict(ref='V1',part='dc_source',value='5 V'),dict(ref='RV1',part='potentiometer',value='10 kohm'),dict(ref='R1',part='resistor',value='220 ohm')]
@@ -105,3 +106,5 @@ def schmitt_inverter():
     ])
 
 EXAMPLES['schmitt_inverter']=schmitt_inverter
+
+EXAMPLES['at89c51_lcd']=at89c51_lcd
