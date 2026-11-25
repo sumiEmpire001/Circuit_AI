@@ -27,6 +27,9 @@ def layout(design):
             right=['D12','D11','D5','D4','D3','D2']+[f'D{i}' for i in [0,1,6,7,8,9,10,13]]
         elif c.part=='lcd1602':
             left=['4','6','11','12','13','14','1','2','3','5']; right=['7','8','9','10','15','16']
+        elif c.part=='uln2003a': left=[f'IN{i}' for i in range(1,8)]+['E']; right=[f'OUT{i}' for i in range(1,8)]+['COM']
+        elif c.part=='l293d': left=['VCC1','VCC2','EN12','IN1','IN2','EN34','IN3','IN4','GND1','GND2','GND3','GND4']; right=['OUT1','OUT2','OUT3','OUT4']
+        elif c.part=='lm35': left=['VS','GND']; right=['VOUT']
         elif spec['symbol']=='pot': left=['1','W']; right=['2']
         elif c.part=='npn': left=['B']; right=['C','E']
         elif c.part=='nmos': left=['G']; right=['D','S']
