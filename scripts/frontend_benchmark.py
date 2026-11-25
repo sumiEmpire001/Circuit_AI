@@ -6,7 +6,9 @@ from playwright.sync_api import sync_playwright
 CASES=[
  ('led','builtin','5V LED with 330 ohm resistor',3,3),
  ('rc','builtin','rc_ladder',5,4),
+ ('rc_long','local','Create a two-stage RC low-pass filter using a 5V DC source, a 1 kohm resistor R1, a 2.2 kohm resistor R2, and two 100 nF capacitors C1 and C2. Connect V1 positive to R1, R1 to R2 and C1, R2 to C2, and both capacitor returns to V1 negative. Show the output at R2 and C2 and draw junction dots.',5,4),
  ('bridge','local','four diode bridge rectifier',7,4),
+ ('bridge_long','local',"Create a full-wave bridge rectifier using four 1N4007 diodes D1 D2 D3 D4, a 100 nF capacitor C1, a two-pin isolated low-voltage AC input J1 and a two-pin DC output J2. Connect J1 pin 1 to D1 cathode and D2 anode, J1 pin 2 to D3 cathode and D4 anode, D2 and D4 cathodes to positive output J2 pin 1 and C1 pin 2, and D1 and D3 anodes to negative output J2 pin 2 and C1 pin 1.",7,4),
  ('lcd','local','Arduino Uno with a 16x2 LCD',5,10),
  ('servo','builtin','mega_ldr_servo',6,5),
  ('ledbank','builtin','4-channel LED bank',9,6),
