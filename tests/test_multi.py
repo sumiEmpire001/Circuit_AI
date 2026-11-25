@@ -4,8 +4,6 @@ import json
 import random
 import struct
 import xml.etree.ElementTree as ET
-from unittest.mock import patch
-import httpx
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
@@ -95,23 +93,21 @@ def test_auth_all_write_endpoints(monkeypatch):
         assert client.post(path,json=body).status_code==401
         assert client.post(path,json=body,headers={'X-API-Key':'secret-test'}).status_code==200
 
-@pytest.mark.parametrize('mode',['valid','clarify','malformed','offline'])
-def test_ai_proposal_boundary(monkeypatch,mode):
-    monkeypatch.setenv('OLLAMA_URL','http://model.test');monkeypatch.setenv('OLLAMA_MODEL','model')
-    async def fake(self,url,**kwargs):
-        assert kwargs['json']['format']['type']=='object'
-        request=json.loads(kwargs['json']['messages'][1]['content'])
-        assert request['previous_design']['title']==data()['title']
-        if mode=='offline':raise httpx.ConnectError('offline')
-        proposal={'design':data() if mode=='valid' else None,'unresolved':[] if mode=='valid' else ['Which controller?'],'explanation':'Review draft'}
-        return httpx.Response(200,json={'message':{'content':'bad JSON' if mode=='malformed' else json.dumps(proposal)}},request=httpx.Request('POST',url))
-    with patch.object(httpx.AsyncClient,'post',fake):
-        r=client.post('/v2/draft',json={'prompt':'Use a 330 ohm backlight resistor','parser':'ollama','previous_design':data()})
-    assert r.status_code=={'valid':200,'clarify':422,'malformed':502,'offline':502}[mode]
+@pytest.mark.parametrize('prompt',['Arduino Uno with a 16x2 LCD','four channel led bank','two stage rc filter'])
+def test_local_model(prompt):
+    r=client.post('/v2/draft',json={'prompt':prompt,'parser':'local'})
+    assert r.status_code==200
+    assert not r.json()['validation']['errors']
 
-def test_unconfigured_ai(monkeypatch):
-    monkeypatch.delenv('OLLAMA_MODEL',raising=False)
-    assert client.post('/v2/draft',json={'prompt':'Make a circuit','parser':'ollama'}).status_code==503
+@pytest.mark.parametrize('prompt',['ESP32 with LCD','four channel led bank at 12 V','two stage rc filter with relay'])
+def test_local_rejects_unknown_constraints(prompt):
+    assert client.post('/v2/draft',json={'prompt':prompt,'parser':'local'}).status_code==422
+
+def test_local_revision_rejected():
+    assert client.post('/v2/draft',json={'prompt':'change resistor','parser':'local','previous_design':data()}).status_code==422
+
+def test_remote_parser_removed():
+    assert client.post('/v2/draft',json={'prompt':'Make a circuit','parser':'ollama'}).status_code==422
 
 def test_png_and_limits():
     r=post(data(),image_format='png');assert r.status_code==200
