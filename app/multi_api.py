@@ -45,6 +45,7 @@ def builtin_design(prompt):
     if clean in {'two-stage rc filter','rc_ladder'}: return EXAMPLES['rc_ladder']()
     if clean=='mega_ldr_servo': return EXAMPLES['mega_ldr_servo']()
     if clean=='mega_ldr': return EXAMPLES['mega_ldr']()
+    if clean in {'5v led with 330 ohm resistor','three component led circuit'}: return led_bank(1)
     if clean=='led_bank': return EXAMPLES['led_bank']()
     match=re.fullmatch(r'(?:create )?(\d{1,2})[- ](?:channel )?led bank',clean)
     if match:
@@ -83,7 +84,9 @@ def result_for(design,image_format='svg'):
         png=resvg_py.svg_to_bytes(svg_string=svg,zoom=zoom,font_files=[str(Path(__file__).with_name('fonts')/'SchematicSans.ttf')])
         image={'mime_type':'image/png','base64':base64.b64encode(png).decode()}
     return dict(schema_version='2.0',design=data,validation=validation,image=image,
-                routing='Matching net labels are connected; unobstructed facing pins also receive direct wires.',
+                routing='Continuous bus routes where feasible; matching labels connect unrouted nets. Wire gaps mark nonconnecting crossings.',
+                routed_nets=sorted(set(re.findall(r'data-route-net="([^"]+)"',svg))),
+                unrouted_nets=sorted(set(n.name for n in design.nets)-set(re.findall(r'data-route-net="([^"]+)"',svg))),
                 bill_of_materials=[dict(ref=c.ref,part=c.part,value=c.value) for c in design.components])
 
 @router.get('/studio',response_class=HTMLResponse)
