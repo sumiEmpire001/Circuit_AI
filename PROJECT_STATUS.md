@@ -16,6 +16,16 @@ Four published references (MIT, Microchip, Arduino and Texas Instruments) are fr
 
 The pin-level parser now understands reference-first sentences such as `R1 is a 330 ohm resistor` and infers connected groups from explicit terminal joins. Connecting differently named nets produces a clarification rather than silently merging them. The classifier weights and training corpus remain at version 0.5. Local results are 108 backend tests and 254 of 254 strict net checks across 24 authored browser submissions, plus the published pilot above.
 
+## Parameterized passive requests
+
+Local mode now builds a two-resistor voltage divider or a first-order RC low-pass filter from a circuit heading and component roles. The grammar accepts variable values and units, clause order, and optional reference designators. It requires every applicable role and rejects duplicate or unsupported constraints. CircuitLM weights remain at 0.5.
+
+Studio reports an unloaded nominal output voltage and gain for a verified divider topology, or cutoff and time constant for a recognized RC filter. The engineering formulas follow [Microchip's voltage divider reference](https://developerhelp.microchip.com/xwiki/bin/view/products/amplifiers-linear/analog-sensor-conditioning-circuits/voltage-divider/) and [Stanford's RC filter lecture](https://web.stanford.edu/class/archive/engr/engr40m.1178/slides_sp17/lecture14_annotated.pdf). These are ideal calculations, not simulation.
+
+Verification passed 118 backend tests and 260 of 260 net checks across 26 authored browser submissions. The published-v1 pilot stayed at zero exact free-form prompts out of four and 15 of 15 routed reference nets. No published-v1 prompt was used to train or register an alias.
+
+Example: *Design a voltage divider. Use a 12 V source. The upper resistor is 33 kohm. The lower resistor is 10 kohm. Calculate the nominal output voltage.*
+
 ## Open acceptance work
 
 The authored suite includes reviewed prompts and a small set of unfamiliar pin-explicit designs. Effects such as component substitutions, ambitious functional requirements, real operation, and arbitrary pinout coverage need separate verification. The 98% target requires a frozen, diverse external holdout and independent scoring. Native schematic ERC and simulation have yet to run. The ADC still has crossings and packed text near the interfaces, and many devices remain functional blocks.

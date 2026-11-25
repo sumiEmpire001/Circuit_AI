@@ -31,6 +31,12 @@ PIN_PROSE = (
     'Connect R5 pin 2 to C5 pin 1 on net SLOW. Connect V1 negative, C4.2, and C5.2 on net RETURN.'
 )
 CASES += [
+    ('role_divider','local',
+     'Design a voltage divider. Use a 12 V source. The upper resistor is 33 kohm. '
+     'The lower resistor is 10 kohm. Calculate the nominal output voltage.',3,3),
+    ('role_filter','local',
+     'Make a first-order RC low-pass filter; the shunt capacitor CX is 47 nF; '
+     'use 5 V at the input; the series resistor RX is 2.2 kΩ.',3,3),
     ('pin_prose_joins','local',
      'V1 is a 5 V DC source. R1 is a 330 ohm resistor. D1 is a red LED. '
      'Join V1 positive and R1.1. Connect R1.2 to D1.A on net N1. '
@@ -97,6 +103,10 @@ def main():
                 assert page.locator('#canvas [data-pin].trace-match').count() == 2
                 assert page.locator('#canvas [data-route-net].trace-match').count() > 0
                 page.locator('#netTrace').select_option('')
+            if label=='role_divider':
+                assert 'Output 2.791 V' in page.locator('#calculations').inner_text()
+            if label=='role_filter':
+                assert 'Cutoff 1539 Hz' in page.locator('#calculations').inner_text()
             if label=='rc_calculation':
                 assert '1592 Hz' in page.locator('#calculations').inner_text()
             page.locator('#canvas').screenshot(path=str(out/(label+'.png')))

@@ -32,6 +32,7 @@ def draft_local(prompt, previous_design=None):
     from app.constraint_parser import matches_constraint_prompt, parse_constraints
     from app.design_examples import EXAMPLES
     from app.image_reference import ADC_PROMPT, LCD_PROMPTS
+    from app.passive_intents import parse_passive_intent
     if previous_design is not None:
         # Explicit bounded value edit; no topology changes or silent constraint drops.
         match = re.fullmatch(r'change ([A-Za-z][A-Za-z0-9_+-]*) to ([0-9]+(?:\.[0-9]+)? (?:ohm|kohm|nF|uF|pF))', prompt.strip(), re.I)
@@ -50,6 +51,8 @@ def draft_local(prompt, previous_design=None):
                 component['value'] = value
                 return Design.model_validate(data)
         raise ValueError('Unknown component reference.')
+    if design := parse_passive_intent(prompt):
+        return design
     if matches_constraint_prompt(prompt):
         return parse_constraints(prompt)
     label = classify(prompt)

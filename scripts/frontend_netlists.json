@@ -1,4 +1,6 @@
 {
+  "role_divider": {"INPUT": "V1.+ R1.1", "OUT": "R1.2 R2.1", "RETURN": "R2.2 V1.-"},
+  "role_filter": {"INPUT": "V1.+ RX.1", "OUT": "RX.2 CX.1", "RETURN": "CX.2 V1.-"},
   "pin_prose_joins": {
     "N2": "V1.+ R1.1",
     "N1": "R1.2 D1.A",
