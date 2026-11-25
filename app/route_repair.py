@@ -25,9 +25,9 @@ def render_repaired(design,validation):
         audit=audit_routes(svg)
         attempts+=1
         if audit['passed']:
-            best=((len(route_names(svg)),0,0,-size[1]),svg,boxes,size,audit,[],0)
+            best=((len(route_names(svg)),len(audit['continuous_nets']),0,0,-size[1]),svg,boxes,size,audit,[],0)
     for order in orders[:3] if grid is not None else orders:
-        if best is not None and best[0][0]==len(nets): break
+        if best is not None and best[0][0]==len(nets) and best[0][1]==len(nets): break
         key=tuple(n.name for n in order)
         if key in seen: continue
         seen.add(key)
@@ -43,10 +43,10 @@ def render_repaired(design,validation):
             svg=remove_routes(svg,{victim})
             audit=audit_routes(svg)
         coverage=len(route_names(svg))
-        score=(coverage,-len(removed),-initial,-size[1])
+        score=(coverage,len(audit['continuous_nets']),-len(removed),-initial,-size[1])
         if best is None or score>best[0]:
             best=(score,svg,boxes,size,audit,sorted(removed),initial)
-        if coverage==len(nets): break
+        if coverage==len(nets) and len(audit['continuous_nets'])==len(nets): break
     _,svg,boxes,size,audit,removed,initial=best
-    audit.update(attempts=attempts,removed_routes=removed,initial_conflicts=initial,scope='Visible route segments only; not electrical simulation or continuity proof')
+    audit.update(attempts=attempts,removed_routes=removed,initial_conflicts=initial,scope='Cross-net contacts and strict visible segment continuity; intentional bridge gaps count as interruptions. Not electrical simulation.')
     return svg,boxes,size,audit
