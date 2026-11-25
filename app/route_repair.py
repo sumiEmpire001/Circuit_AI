@@ -4,6 +4,7 @@ import re
 from collections import Counter
 from app.multi_render import render_design
 from app.route_guard import audit_routes
+from app.route_search import route_grid
 
 def route_names(svg):
     return {unescape(n) for n in re.findall(r'data-route-net="([^"]+)"',svg)}
@@ -18,7 +19,15 @@ def render_repaired(design,validation):
     best=None
     seen=set()
     attempts=0
-    for order in orders:
+    grid=route_grid(design,validation)
+    if grid is not None:
+        svg,boxes,size=grid
+        audit=audit_routes(svg)
+        attempts+=1
+        if audit['passed']:
+            best=((len(route_names(svg)),0,0,-size[1]),svg,boxes,size,audit,[],0)
+    for order in orders[:3] if grid is not None else orders:
+        if best is not None and best[0][0]==len(nets): break
         key=tuple(n.name for n in order)
         if key in seen: continue
         seen.add(key)
