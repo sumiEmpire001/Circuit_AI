@@ -10,6 +10,12 @@ Phase 2 remains active on `phase2-independent-model`. Phase 4 and production cha
 - On the 21 unchanged Chromium cases, endpoint label duplication dropped from 790 to 229 labels. The independent SVG measure found zero net-label overlaps in both sets and unchanged aggregate wire length and crossings. Continuous nets carry one label; fallback nets keep their terminal labels.
 - The ADC benchmark passed 19 of 19 continuous nets with zero unintended contacts and 27 undotted crossings. The 1 kΩ / 100 nF RC case passed three nets and reported 1,592 Hz nominal cutoff. Total local checks passed 105 backend tests and 251 of 251 strict net checks across 23 Chromium submissions. Browser editing, import, export, and mobile checks passed.
 
+## Published topology pilot
+
+Four published references (MIT, Microchip, Arduino and Texas Instruments) are frozen in [published-v1](training/benchmarks/README.md). Prompt wording and adapted netlists were authored locally and excluded from training. CircuitLM requested clarification on all four free-form descriptions. Supplying the expected terminal groups directly yielded 15 of 15 continuous nets with zero unintended contacts. The six-net LM358 diagram had 18 undotted crossings and long feedback loops. These are pilot counts, not the independent 98% gate.
+
+The pin-level parser now understands reference-first sentences such as `R1 is a 330 ohm resistor` and infers connected groups from explicit terminal joins. Connecting differently named nets produces a clarification rather than silently merging them. The classifier weights and training corpus remain at version 0.5. Local results are 108 backend tests and 254 of 254 strict net checks across 24 authored browser submissions, plus the published pilot above.
+
 ## Open acceptance work
 
 The authored suite includes reviewed prompts and a small set of unfamiliar pin-explicit designs. Effects such as component substitutions, ambitious functional requirements, real operation, and arbitrary pinout coverage need separate verification. The 98% target requires a frozen, diverse external holdout and independent scoring. Native schematic ERC and simulation have yet to run. The ADC still has crossings and packed text near the interfaces, and many devices remain functional blocks.

@@ -31,6 +31,10 @@ PIN_PROSE = (
     'Connect R5 pin 2 to C5 pin 1 on net SLOW. Connect V1 negative, C4.2, and C5.2 on net RETURN.'
 )
 CASES += [
+    ('pin_prose_joins','local',
+     'V1 is a 5 V DC source. R1 is a 330 ohm resistor. D1 is a red LED. '
+     'Join V1 positive and R1.1. Connect R1.2 to D1.A on net N1. '
+     'Join D1.K to V1 negative.',3,3),
     ('image_adc','local',CORPUS['at89c51_adc'][0],11,19),
     ('rc_calculation','local',RC_CALC,3,3),
     ('pin_prose_novel','local',PIN_PROSE,5,4),

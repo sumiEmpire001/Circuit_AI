@@ -14,6 +14,7 @@ jobs:
           python -m uvicorn app.main:app --port 8765 > server.log 2>&1 &
           for i in $(seq 1 60); do curl -fsS http://127.0.0.1:8765/health && break; sleep 1; done
           python scripts/frontend_benchmark.py
+          PUBLISHED_RESULTS_DIR=frontend-results/published python scripts/published_benchmark.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

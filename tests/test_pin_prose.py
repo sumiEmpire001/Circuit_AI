@@ -51,3 +51,30 @@ def test_timer_draft_and_verified_supply_range():
     assert not result['validation']['errors']
     next(c for c in design['components'] if c['ref']=='V1')['value']='3.3 V'
     assert any(e['code']=='voltage_mismatch' for e in client.post('/v2/validate',json=design).json()['errors'])
+
+
+def test_reference_first_declarations_and_unnamed_connections():
+    prompt = """V1 is a 5 V DC source. R1 is a 330 ohm resistor. D1 is a red LED.
+    Join V1 positive and R1.1. Connect R1.2 to D1.A on net N1.
+    Join D1.K to V1 negative."""
+    response=submit(prompt)
+    assert response.status_code==200,response.text
+    assert {n['name']:set(n['pins']) for n in response.json()['design']['nets']}=={
+        'N2':{'V1.+','R1.1'},'N1':{'R1.2','D1.A'},'N3':{'D1.K','V1.-'},
+    }
+
+
+def test_unnamed_join_extends_named_net_without_inventing_a_second_node():
+    prompt=PROMPT.replace('R2.2, R3.1, C4.1, and J2.1 on net OUTPUT',
+                          'R2.2 and R3.1 on net OUTPUT. Join R3.1, C4.1 and J2.1')
+    result=submit(prompt)
+    assert result.status_code==200,result.text
+    assert next(n['pins'] for n in result.json()['design']['nets'] if n['name']=='OUTPUT')==[
+        'R2.2','R3.1','C4.1','J2.1'
+    ]
+
+
+def test_unnamed_join_cannot_short_two_named_nets_silently():
+    result=submit(PROMPT+' Join R2.2 and R3.2.')
+    assert result.status_code==422
+    assert 'OUTPUT, RETURN' in result.json()['detail']

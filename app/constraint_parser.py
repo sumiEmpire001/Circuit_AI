@@ -1,4 +1,6 @@
 """Translate complete, pin-explicit prose into the existing Design model."""
+from collections import defaultdict
+from itertools import count
 from math import isfinite
 import re
 
@@ -9,7 +11,8 @@ IDENTIFIER = r'[A-Za-z_][A-Za-z0-9_+\-]{0,31}'
 DECLARATION = re.compile(
     rf'(?:an?\s+)?(?P<part_value>.+?)\s+named\s+(?P<ref>{IDENTIFIER})', re.I
 )
-CONNECTION = re.compile(rf'connect\s+(.+?)\s+(?:on|as)\s+net\s+({IDENTIFIER})', re.I)
+REFERENCE_DECLARATION = re.compile(rf'({IDENTIFIER})\s+is\s+(.+)', re.I)
+CONNECTION = re.compile(rf'(?:connect|join)\s+(.+?)(?:\s+(?:on|as)\s+net\s+({IDENTIFIER}))?', re.I)
 TERMINAL = re.compile(
     rf'({IDENTIFIER})(?:\s+pin\s+|\s+|\.)([A-Za-z0-9_+\-]{{1,24}}(?:\.[A-Za-z0-9_+\-]{{1,12}})?)', re.I
 )
@@ -36,7 +39,10 @@ ORDERED_NAMES = sorted(NAMES, key=len, reverse=True)
 
 
 def matches_constraint_prompt(prompt):
-    return bool(re.match(r'^\s*(?:title\s*:|use\s+.+?\bnamed\s+|create a circuit\.)', prompt, re.I))
+    return bool(re.match(
+        rf'^\s*(?:title\s*:|use\s+.+?\bnamed\s+|create a circuit\.|{IDENTIFIER}\s+is\s+)',
+        prompt, re.I,
+    ))
 
 
 def parse_component(description):
@@ -104,8 +110,10 @@ def parse_constraints(prompt):
         if not clause or clause.lower() == 'create a circuit':
             continue
         subject, _, description = clause.partition(' ')
-        if subject.lower()=='use':
-            for declaration in LIST_SEPARATOR.split(description):
+        assignment = REFERENCE_DECLARATION.fullmatch(clause)
+        if subject.lower()=='use' or assignment:
+            declarations = [f'{assignment[2]} named {assignment[1]}'] if assignment else LIST_SEPARATOR.split(description)
+            for declaration in declarations:
                 component = parse_component(declaration)
                 ref = component['ref']
                 if ref in components:
@@ -117,17 +125,50 @@ def parse_constraints(prompt):
             title = clause[6:].strip()
             title_seen = True
         elif claim := CONNECTION.fullmatch(clause):
-            claims.append((claim[2].upper(), LIST_SEPARATOR.split(claim[1])))
+            claims.append((claim[2].upper() if claim[2] else None, LIST_SEPARATOR.split(claim[1])))
         else:
-            raise ValueError(f'Unsupported clause “{clause[:100]}”. Use explicit, named pin connections.')
+            raise ValueError(f'Unsupported clause “{clause[:100]}”. Use explicit pin connections.')
 
-    nets = {}
+    return Design(title=title, components=list(components.values()),
+                  nets=connected_nets(claims, components))
+
+
+def connected_nets(claims, components):
+    """Join stated terminal groups and reject merges of differently named nets."""
+    adjacency = defaultdict(set)
+    names = defaultdict(set)
+    anchors = {}
     for name, terminals in claims:
         pins = [resolve_terminal(token, components) for token in terminals]
         if len(set(pins)) < 2 or len(set(pins))!=len(pins):
-            raise ValueError(f'Net {name} needs at least two distinct terminals without repetitions.')
-        nets.setdefault(name, {}).update(dict.fromkeys(pins))
-    if not nets:
-        raise ValueError('Provide at least one named net with two or more terminals.')
-    return Design(title=title, components=list(components.values()),
-                  nets=[dict(name=name, pins=list(pins)) for name, pins in nets.items()])
+            raise ValueError('A connection needs at least two distinct terminals without repetitions.')
+        first = pins[0]
+        if name:
+            first = anchors.setdefault(name, first)
+            names[first].add(name)
+        for pin in pins:
+            adjacency[first].add(pin)
+            adjacency[pin].add(first)
+
+    if not adjacency:
+        raise ValueError('Provide at least one connection with two or more terminals.')
+    pin_order = {pin:index for index,pin in enumerate(adjacency)}
+    generated = (f'N{i}' for i in count(1) if f'N{i}' not in anchors)
+    seen = set()
+    nets = []
+    for start in adjacency:
+        if start in seen:
+            continue
+        group = {start}
+        pending = [start]
+        while pending:
+            for peer in adjacency[pending.pop()] - group:
+                group.add(peer)
+                pending.append(peer)
+        seen.update(group)
+        labels = {name for pin in group for name in names.get(pin, ())}
+        if len(labels)>1:
+            raise ValueError(f'Conflicting named nets: {", ".join(sorted(labels))}.')
+        name = next(iter(labels)) if labels else next(generated)
+        nets.append(dict(name=name, pins=sorted(group,key=pin_order.__getitem__)))
+    return nets

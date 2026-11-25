@@ -1,0 +1,65 @@
+{
+  "version": "published-v1",
+  "description": "Published topology references with locally authored prompt wording and expected netlists. Keep this revision out of model training.",
+  "cases": [
+    {
+      "id": "mit_rc_high_pass",
+      "source_url": "https://web.mit.edu/6.101/www/s2019/handouts/L07.pdf",
+      "source_locator": "High Pass Filter HPF",
+      "adaptation": "Input and output are two-pin connectors instead of the source and measuring instrument. Values and terminal numbering are specified by the fixture.",
+      "prompt": "Draw a first-order high-pass section. The AC input enters J1 and exits through J2, both two-pin connectors with pin 2 as the shared return. Put a 47 nF capacitor C1 in series from J1 pin 1 (C1 pin 1) to the output (C1 pin 2). Load the output with a 6.8 kohm resistor R1 from its pin 1 at J2 pin 1 to its pin 2 at the shared return.",
+      "components": [
+        {"ref":"J1","part":"connector2","value":""},
+        {"ref":"J2","part":"connector2","value":""},
+        {"ref":"C1","part":"capacitor","value":"47 nF"},
+        {"ref":"R1","part":"resistor","value":"6.8 kohm"}
+      ],
+      "nets": {"INPUT":["J1.1","C1.1"],"OUT":["C1.2","R1.1","J2.1"],"RETURN":["J1.2","J2.2","R1.2"]}
+    },
+    {
+      "id": "microchip_filtered_divider",
+      "source_url": "https://onlinedocs.microchip.com/oxy/GUID-2B17BE2C-35EB-43A9-ACC2-59322EFEA913-en-US-2/GUID-E57B23FD-FCDD-40C0-8F12-B0F2EB6DBBCA.html",
+      "source_locator": "Figure 5-1 and capacitor-across-R2 discussion",
+      "adaptation": "The optional protection diode is omitted. J1 exposes the measurement node for a high-impedance input. Supply and component values are fixture choices.",
+      "prompt": "I need a filtered voltage divider for a 9 V source V1. Use R1 of 27 kohm at the top and R2 of 10 kohm at the bottom, with pin 1 of each resistor the upper end. Fit C1 of 100 nF across R2, also with pin 1 uppermost. Use a two-pin connector J1 for the tap and return, in that order. Omit the optional clamp.",
+      "components": [
+        {"ref":"V1","part":"dc_source","value":"9 V"},
+        {"ref":"R1","part":"resistor","value":"27 kohm"},
+        {"ref":"R2","part":"resistor","value":"10 kohm"},
+        {"ref":"C1","part":"capacitor","value":"100 nF"},
+        {"ref":"J1","part":"connector2","value":""}
+      ],
+      "nets": {"SUPPLY":["V1.+","R1.1"],"TAP":["R1.2","R2.1","C1.1","J1.1"],"RETURN":["V1.-","R2.2","C1.2","J1.2"]}
+    },
+    {
+      "id": "arduino_button_pulldown",
+      "source_url": "https://docs.arduino.cc/built-in-examples/digital/Button/",
+      "source_locator": "Circuit and Schematic",
+      "adaptation": "V1 represents the USB-derived breadboard rail and does not represent a second supply powering a USB-connected Arduino. The board LED is internal to the board.",
+      "prompt": "Use an Arduino Uno U1 and its 5 V USB-derived rail, represented by V1. Put a momentary pushbutton S1 between 5 V (pin 1) and digital pin D2 (pin 2). Install R1, a 10 kohm pull-down from D2 on resistor pin 1 to the common ground on pin 2. Include the board power and ground connections to V1.",
+      "components": [
+        {"ref":"U1","part":"arduino_uno","value":""},
+        {"ref":"S1","part":"pushbutton","value":""},
+        {"ref":"R1","part":"resistor","value":"10 kohm"},
+        {"ref":"V1","part":"dc_source","value":"5 V"}
+      ],
+      "nets": {"VCC":["V1.+","U1.5V","S1.1"],"BUTTON":["S1.2","R1.1","U1.D2"],"RETURN":["V1.-","U1.GND","R1.2"]}
+    },
+    {
+      "id": "ti_noninverting_gain",
+      "source_url": "https://www.ti.com/lit/ds/symlink/lm358-n.pdf",
+      "source_locator": "Figure 8-1, Non-Inverting DC Gain",
+      "adaptation": "Adapts the LM158 example to the corresponding first channel of an LM358N PDIP, with a shared-return single supply, connectors, fixture resistor values, and the spare channel wired as a follower of the input. The fixture specifies connectivity only.",
+      "prompt": "Draw a non-inverting LM358N stage U1 with a 5 V source V1, signal input J1 and output J2. Each connector has signal on pin 1 and common ground on pin 2. Feed input into both non-inverting pins. Use a 20 kohm feedback resistor RF between the first output on RF pin 1 and its inverting input on pin 2. Add a 10 kohm resistor RG from that inverting input on RG pin 1 to ground on pin 2. Drive J2 from the first output. Close the second channel as a follower by directly joining its own output and inverting pin. Wire the IC positive and negative supplies to V1.",
+      "components": [
+        {"ref":"U1","part":"lm358n","value":""},
+        {"ref":"V1","part":"dc_source","value":"5 V"},
+        {"ref":"RF","part":"resistor","value":"20 kohm"},
+        {"ref":"RG","part":"resistor","value":"10 kohm"},
+        {"ref":"J1","part":"connector2","value":""},
+        {"ref":"J2","part":"connector2","value":""}
+      ],
+      "nets": {"SUPPLY":["V1.+","U1.8"],"RETURN":["V1.-","U1.4","RG.2","J1.2","J2.2"],"INPUT":["J1.1","U1.3","U1.5"],"FEEDBACK":["RF.2","U1.2","RG.1"],"OUT":["RF.1","U1.1","J2.1"],"UNUSED_FOLLOWER":["U1.7","U1.6"]}
+    }
+  ]
+}
