@@ -19,6 +19,7 @@ def layout(design):
             right=['D12','D11','D5','D4','D3','D2']+[f'D{i}' for i in [0,1,6,7,8,9,10,13]]
         elif c.part=='lcd1602':
             left=['4','6','11','12','13','14','1','2','3','5']; right=['7','8','9','10','15','16']
+        elif spec['symbol']=='pot': left=['1','W']; right=['2']
         elif c.part=='npn': left=['B']; right=['C','E']
         elif c.part=='nmos': left=['G']; right=['D','S']
         elif len(pins)==2: left=pins[:1];right=pins[1:]
@@ -82,7 +83,9 @@ def render_design(design,validation):
                 line(f'M {x+70} {cy} H {x+90} M {x+140} {cy} H {x+160} M {x+98} {cy} h 10 m -5 -5 v 10 M {x+123} {cy} h 10')
             elif kind=='switch': line(f'M {x+70} {cy} H {x+90} L {x+140} {cy-25} M {x+140} {cy} H {x+160}')
             elif kind=='inductor': line(f'M {x+70} {cy} '+''.join('a 11.25 13 0 0 1 22.5 0 ' for _ in range(4)))
-            else: parts.append(f'<rect class="symbol" x="{x+70}" y="{cy-15}" width="90" height="30"/>')
+            else:
+                parts.append(f'<rect class="symbol" x="{x+70}" y="{cy-15}" width="90" height="30"/>')
+                text(x+115,cy+4,spec['name'][:12],anchor='middle')
         elif kind=='pot':
             line(f'M {x} {cy} H {x+70} M {x+160} {cy} H {x+w}','wire')
             parts.append(f'<rect class="symbol" x="{x+70}" y="{cy-10}" width="90" height="20"/>')
