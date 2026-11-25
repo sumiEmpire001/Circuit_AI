@@ -54,6 +54,7 @@ def render_design(design,validation):
     # Such nets retain labels rather than displaying a misleading partial wire.
     routes=[]
     occupied=set()
+    horizontal=[]
     for index,net in enumerate(design.nets):
         bus=height+40+index*24
         branches=[]
@@ -63,7 +64,8 @@ def render_design(design,validation):
             chosen=None
             for offset in range(12,181,8):
                 tx=px+direction*offset
-                if tx<20 or tx in occupied or any(t==tx for _,_,t in branches): continue
+                if tx<20 or tx>width-20 or tx in occupied or any(t==tx for _,_,t in branches): continue
+                if any(py==hy and min(px,tx)<=hi and max(px,tx)>=lo for hy,lo,hi in horizontal): continue
                 if any(min(px,tx)<x+w+5 and max(px,tx)>x-5 and y-5<=py<=y+h+5 for x,y,w,h in boxes.values()): continue
                 if any(x-5<=tx<=x+w+5 and y+h+5>=py for x,y,w,h in boxes.values()): continue
                 chosen=tx;break
@@ -71,13 +73,27 @@ def render_design(design,validation):
             branches.append((px,py,chosen))
         if len(branches)!=len(net.pins): continue
         occupied.update(t for _,_,t in branches)
+        horizontal.extend((py,min(px,t),max(px,t)) for px,py,t in branches)
         routes.append((net.name,bus,branches))
     for name,bus,branches in routes:
         attrs=f'data-route-net="{escape(name)}"'
         xs=[t for _,_,t in branches]
         line(f'M {min(xs)} {bus} H {max(xs)}','wire',attrs)
         for px,py,tx in branches:
-            line(f'M {px} {py} H {tx} V {bus}','wire',attrs)
+            line(f'M {px} {py} H {tx}','wire',attrs)
+            # Bridge over other nets' horizontal tracks, never over our own junction.
+            crossings=set()
+            for other,ob,obs in routes:
+                if other==name: continue
+                ox=[t for _,_,t in obs]
+                if py+5<ob<bus-5 and min(ox)<tx<max(ox): crossings.add(ob)
+                for op,oy,ot in obs:
+                    if py+5<oy<bus-5 and min(op,ot)<tx<max(op,ot): crossings.add(oy)
+            path=f'M {tx} {py}'
+            for cross in sorted(crossings):
+                path+=f' V {cross-4} M {tx} {cross+4}'
+            path+=f' V {bus}'
+            line(path,'wire',attrs)
             if min(xs)<tx<max(xs):
                 parts.append(f'<circle cx="{tx}" cy="{bus}" r="3.5" fill="#285b36" data-junction-net="{escape(name)}"/>')
     # Extend canvas to include buses; preserve component positions.
