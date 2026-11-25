@@ -8,12 +8,20 @@ def layout(design):
     catalog=design.catalog(); boxes={}; points={}
     cols=min(2 if len(design.components)<=12 else 3,len(design.components))
     row_tops={0:130}
+    compact={}
+    # Recognize the actual series-loop topology rather than the prompt title.
+    bypart={c.part:c.ref for c in design.components}
+    if len(design.components)==3 and set(bypart)=={'dc_source','resistor','led'}:
+        v,r,d=(bypart[k] for k in ('dc_source','resistor','led'))
+        expected={frozenset((v+'.+',r+'.1')),frozenset((r+'.2',d+'.A')),frozenset((d+'.K',v+'.-'))}
+        if {frozenset(n.pins) for n in design.nets}==expected:
+            compact={r:(210,130),d:(610,130),v:(410,370)}
     for index,c in enumerate(design.components):
         spec=catalog[c.part]; pins=list(spec['pins'])
         # Stable placement, serialized in the returned design for subsequent edits.
-        x=c.position.x if c.position else 210+(index%cols)*620
+        x=c.position.x if c.position else compact.get(c.ref,(210+(index%cols)*620,0))[0]
         row=index//cols
-        y=c.position.y if c.position else row_tops.get(row,130)
+        y=c.position.y if c.position else compact.get(c.ref,(0,row_tops.get(row,130)))[1]
         if c.part=='arduino_uno':
             left=['5V','GND']+[f'A{i}' for i in range(6)]
             right=['D12','D11','D5','D4','D3','D2']+[f'D{i}' for i in [0,1,6,7,8,9,10,13]]
