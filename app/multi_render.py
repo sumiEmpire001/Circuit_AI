@@ -6,6 +6,32 @@ from html import escape
 from app.catalog import LCD_LABELS
 from app.parallel_led import bank_placement
 
+def passive_loop_placement(design, nets_by_pin):
+    """Align the output terminals of a three-part passive loop."""
+    if len(design.components)!=3 or len(design.nets)!=3 or any(c.position for c in design.components):
+        return {}
+    source = next((c for c in design.components if c.part=='dc_source'), None)
+    if source is None:
+        return {}
+    passive = {c.ref:c for c in design.components if c.part in {'resistor','capacitor'}}
+    if len(passive)!=2 or not any(c.part=='resistor' for c in passive.values()):
+        return {}
+    rails = [nets_by_pin.get(f'{source.ref}.{pin}') for pin in ('+','-')]
+    if rails[0] is rails[1] or any(net is None or len(net.pins)!=2 for net in rails):
+        return {}
+    series, shunt = (next(pin for pin in net.pins if not pin.startswith(source.ref+'.')) for net in rails)
+    a, b = series.removesuffix('.1'), shunt.removesuffix('.2')
+    if {a,b}!=passive.keys() or a==b:
+        return {}
+    if {frozenset(net.pins) for net in design.nets} != {
+        frozenset((f'{source.ref}.+',series)),
+        frozenset((f'{a}.2',f'{b}.1')),
+        frozenset((f'{source.ref}.-',shunt)),
+    }:
+        return {}
+    return {a:(210,130), b:(560,130), source.ref:(385,310)}
+
+
 def signal_placement(design, catalog):
     """Place a directed signal chain in columns, with shared support below it."""
     if len(design.components)>12 or any(c.position for c in design.components):
@@ -63,7 +89,7 @@ def layout(design):
     adc_interrupts={f'{c.ref}.5' for c in design.components if c.part=='adc0804lcn'}
     adc_ports={pin for terminal in adc_interrupts if terminal in nets_by_pin
                for pin in nets_by_pin[terminal].pins}
-    compact=bank_placement(design) or signal_placement(design,catalog)
+    compact=bank_placement(design) or passive_loop_placement(design,nets_by_pin) or signal_placement(design,catalog)
     # Recognize the actual series-loop topology rather than the prompt title.
     bypart={c.part:c.ref for c in design.components}
     if len(design.components)==3 and set(bypart)=={'dc_source','resistor','led'}:

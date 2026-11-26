@@ -43,6 +43,9 @@ CASES += [
     ('target_filter','local',
      'Create a first-order RC low-pass filter. Use 5 V at the input. The shunt capacitor is 100 nF. '
      'Target a cutoff of 1 kHz.',3,3),
+    ('target_high_pass','local',
+     'I want an RC high-pass filter. Use 3.3 V at the input. '
+     'The series capacitor C4 is 100 nF. Target a cutoff of 1 kHz.',3,3),
     ('pin_prose_joins','local',
      'V1 is a 5 V DC source. R1 is a 330 ohm resistor. D1 is a red LED. '
      'Join V1 positive and R1.1. Connect R1.2 to D1.A on net N1. '
@@ -103,6 +106,9 @@ def main():
             expected = {name:set(pins.split()) for name,pins in FIXTURES[REFERENCE_CASES.get(label,label)].items()}
             assert {n['name']:set(n['pins']) for n in data['design']['nets']} == expected
             measured = measure(page.locator('#canvas svg').evaluate(DOM_SNAPSHOT), expected)
+            if label in {'role_divider','role_filter','target_divider','target_filter','target_high_pass','rc_calculation'}:
+                assert measured['wire_length_svg_units'] <= 800, measured
+                assert measured['undotted_crossings'] == 0, measured
             if label=='image_adc':
                 page.locator('#netTrace').select_option('DB0')
                 assert 'Continuous wire' in page.locator('#traceInfo').inner_text()
@@ -113,7 +119,7 @@ def main():
                 assert 'Output 2.791 V' in page.locator('#calculations').inner_text()
             if label=='role_filter':
                 assert 'Cutoff 1539 Hz' in page.locator('#calculations').inner_text()
-            if label in {'target_divider','target_filter'}:
+            if label in {'target_divider','target_filter','target_high_pass'}:
                 display = 'Output 3.300 V' if label=='target_divider' else 'Cutoff 1000 Hz'
                 assert display in page.locator('#calculations').inner_text()
                 assert 'calculated nominal value' in page.locator('#validation').inner_text()

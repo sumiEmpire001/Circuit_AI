@@ -35,6 +35,14 @@ Local mode can solve one missing resistor in an unloaded divider, or one missing
 
 Verification passed 130 backend tests and 266 of 266 strict net checks across 28 authored Chromium submissions, with zero unintended contacts and label-only nets. Browser editing, import, export and mobile checks passed. The two target schematics had no unrelated crossings, but both used a long wire detour on OUT. The unchanged published pilot returned zero exact free-form interpretations out of four and routed all 15 reference nets. The model and corpus remain at the CircuitLM 0.5 checkpoint.
 
+## High-pass requests and passive layout
+
+Studio accepts first-order RC high-pass requests by component role. It can calculate the nominal cutoff from both values or solve for the series capacitor or shunt resistor from a cutoff target and the other component value. The high-pass estimate describes the ideal frequency response, and steady DC is blocked in that topology.
+
+For three-component passive loops with the standard pin order, the layout aligns the filter output or divider tap on a straight segment. Across five existing Chromium cases, routed wire length per diagram fell from 1,470 to 790 SVG units, with zero crossings and all nets continuous.
+
+Verification passed 134 backend tests, 269 of 269 strict net checks across 29 authored Chromium submissions, and the Studio smoke test. The unmodified published pilot returned four clarifications and verified 15 of 15 routed reference nets. The classifier weights and corpus remain at CircuitLM 0.5.
+
 ## Open acceptance work
 
 The authored suite includes reviewed prompts and a small set of unfamiliar pin-explicit designs. Effects such as component substitutions, ambitious functional requirements, real operation, and arbitrary pinout coverage need separate verification. The 98% target requires a frozen, diverse external holdout and independent scoring. Native schematic ERC and simulation have yet to run. The ADC still has crossings and packed text near the interfaces, and many devices remain functional blocks.

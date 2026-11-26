@@ -31,7 +31,13 @@ def calculate(design, validation):
     resistor_nets={by_terminal[f'{resistor.ref}.{pin}'].name for pin in ('1','2')}
     capacitor_nets={by_terminal[f'{capacitor.ref}.{pin}'].name for pin in ('1','2')}
     middle=resistor_nets & capacitor_nets
-    if len(middle)!=1 or resistor_nets-middle!={positive.name} or capacitor_nets-middle!={negative.name}:
+    if len(middle)!=1:
+        return []
+    if resistor_nets-middle=={positive.name} and capacitor_nets-middle=={negative.name}:
+        kind = 'ideal_rc_lowpass'
+    elif capacitor_nets-middle=={positive.name} and resistor_nets-middle=={negative.name}:
+        kind = 'ideal_rc_highpass'
+    else:
         return []
     tau=scaled(resistor.value,RESISTANCE)*scaled(capacitor.value,CAPACITANCE)
     if not isfinite(tau) or tau<=0:
@@ -39,10 +45,13 @@ def calculate(design, validation):
     cutoff=(1/(2*pi))/tau
     if not isfinite(cutoff):
         return []
+    assumptions = 'Ideal source, nominal components and unloaded output. Analytical estimate.'
+    if kind=='ideal_rc_highpass':
+        assumptions += ' Steady DC is blocked by the series capacitor.'
     return [dict(
-        kind='ideal_rc_lowpass', net=middle.pop(),
+        kind=kind, net=middle.pop(),
         time_constant_s=tau, cutoff_hz=cutoff,
-        assumptions='Ideal source, nominal components and unloaded output. Analytical estimate.',
+        assumptions=assumptions,
     )]
 
 

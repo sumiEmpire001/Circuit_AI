@@ -1,4 +1,4 @@
-"""Complete topology-and-value requests for two passive circuit families."""
+"""Complete topology-and-value requests for simple passive circuit families."""
 from decimal import Decimal
 from math import isfinite, pi
 import re
@@ -8,8 +8,8 @@ from app.constraint_parser import IDENTIFIER, NUMBER, parse_component
 from app.design import Design, voltage
 
 HEADING = re.compile(
-    r'(?:design|build|create|make|draw)(?: me)? (?:a |an )?'
-    r'(?P<family>(?:resistive )?voltage divider|first[- ]order RC low[- ]pass filter)', re.I,
+    r'(?:(?:design|build|create|make|draw)(?: me)?|I (?:need|want)) (?:a |an )?'
+    r'(?P<family>(?:resistive )?voltage divider|(?:first[- ]order )?RC (?:low|high)[- ]pass filter)', re.I,
 )
 VALUE = rf'{NUMBER}\s*[A-Za-zµμΩ]+'
 SOURCE = re.compile(
@@ -17,7 +17,8 @@ SOURCE = re.compile(
     rf'(?: named (?P<ref>{IDENTIFIER}))?|use (?P<input>{NUMBER}\s*V) at the input)', re.I,
 )
 PART = re.compile(
-    rf'(?:the )?(?P<role>upper resistor|top resistor|lower resistor|bottom resistor|series resistor|shunt capacitor)'
+    rf'(?:the )?(?P<role>upper resistor|top resistor|lower resistor|bottom resistor|'
+    rf'series resistor|shunt capacitor|series capacitor|shunt resistor)'
     rf'(?: (?P<ref>{IDENTIFIER}))? (?:is|=) (?P<value>{VALUE})', re.I,
 )
 TARGET = re.compile(
@@ -31,6 +32,7 @@ ROLES = {'top resistor':'upper resistor', 'bottom resistor':'lower resistor'}
 FAMILIES = {
     'divider': ('upper resistor','lower resistor','Voltage divider','output voltage'),
     'low_pass': ('series resistor','shunt capacitor','First-order RC low-pass filter','cutoff frequency'),
+    'high_pass': ('series capacitor','shunt resistor','First-order RC high-pass filter','cutoff frequency'),
 }
 PARTS = {
     'source': ('dc_source','V1'),
@@ -38,6 +40,8 @@ PARTS = {
     'lower resistor': ('resistor','R2'),
     'series resistor': ('resistor','R1'),
     'shunt capacitor': ('capacitor','C1'),
+    'series capacitor': ('capacitor','C1'),
+    'shunt resistor': ('resistor','R1'),
 }
 
 
@@ -46,7 +50,8 @@ def parse_passive_intent(prompt):
     clauses = [s.strip().removesuffix('.') for s in re.split(r'[;\n]+|(?<=\.)\s+', prompt.strip()) if s.strip()]
     if not clauses or not (heading := HEADING.fullmatch(clauses[0])):
         return None
-    family = 'divider' if heading['family'].lower().endswith('divider') else 'low_pass'
+    name = heading['family'].lower()
+    family = 'divider' if name.endswith('divider') else 'high_pass' if 'high' in name else 'low_pass'
     upper, lower, title, quantity = FAMILIES[family]
     expected = ('source',upper,lower)
     parts = {}
@@ -138,14 +143,14 @@ def solve_value(family, missing, known, input_v, target):
         ratio = headroom/target if missing=='upper resistor' else target/headroom
         value = known_value*ratio
     else:
-        units = CAPACITANCE if missing=='series resistor' else RESISTANCE
+        units = CAPACITANCE if known['part']=='capacitor' else RESISTANCE
         known_value = scaled(known['value'],units)
         denominator = target*known_value
         value = (1/(2*pi))/denominator if denominator else 0
     if not isfinite(value) or value<=0:
         raise ValueError('Request needs clarification. The required value is outside the numerical range.')
 
-    scales = CAPACITOR_SCALES if missing=='shunt capacitor' else RESISTOR_SCALES
+    scales = CAPACITOR_SCALES if PARTS[missing][0]=='capacitor' else RESISTOR_SCALES
     multiplier,unit = next((pair for pair in scales if value>=pair[0]),scales[-1])
     normalized = value/multiplier
     if not isfinite(normalized):

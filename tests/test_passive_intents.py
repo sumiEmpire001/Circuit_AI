@@ -24,6 +24,11 @@ FILTER = ('Make a first-order RC low-pass filter; the shunt capacitor CX is 47 n
     (FILTER, {'V1':'5 V','RX':'2.2 kohm','CX':'47 nF'},
      {'OUT':{'RX.2','CX.1'},'INPUT':{'V1.+','RX.1'},'RETURN':{'CX.2','V1.-'}},
      'ideal_rc_lowpass','cutoff_hz',1/(2*pi*2200*47e-9)),
+    ('I need an RC high-pass filter. Use 3.3 V at the input. '
+     'The shunt resistor R9 is 6.8 kohm. The series capacitor C4 is 47 nF.',
+     {'V1':'3.3 V','C4':'47 nF','R9':'6.8 kohm'},
+     {'OUT':{'C4.2','R9.1'},'INPUT':{'V1.+','C4.1'},'RETURN':{'R9.2','V1.-'}},
+     'ideal_rc_highpass','cutoff_hz',1/(2*pi*6800*47e-9)),
     ('Create a first order RC low pass filter. Use a 3.3 V source named VS. '
      'The series resistor is 4.7 kohm. The shunt capacitor is 0.22 µF. Calculate the nominal cutoff frequency.',
      {'VS':'3.3 V','R1':'4.7 kohm','C1':'0.22 uF'},
@@ -51,6 +56,7 @@ def test_parameterized_topology_intent(prompt,values,expected_pins,kind,quantity
     DIVIDER.replace('12 V', '25 V'),
     DIVIDER.replace('The lower resistor is 10 kohm.', 'The shunt capacitor is 10 nF.'),
     FILTER.replace('47 nF', '47 kohm'),
+    FILTER.replace('low-pass', 'high-pass'),
 ])
 def test_passive_intents_reject_missing_values_and_extra_constraints(prompt):
     assert client.post('/v2/draft',json={'parser':'local','prompt':prompt}).status_code==422
@@ -69,6 +75,10 @@ FILTER_TARGET = 'Create a first-order RC low-pass filter. Use 5 V at the input. 
      'cutoff_hz', 1000, 'R1', 'C1'),
     (FILTER_TARGET+' The series resistor is 10 kohm.', '10 kohm', '15.91549431 nF',
      'cutoff_hz', 1000, 'R1', 'C1'),
+    (FILTER_TARGET.replace('low-pass', 'high-pass')+' The shunt resistor is 10 kohm.',
+     '10 kohm', '15.91549431 nF', 'cutoff_hz', 1000, 'C1', 'R1'),
+    (FILTER_TARGET.replace('low-pass', 'high-pass')+' The series capacitor is 100 nF.',
+     '100 nF', '1.591549431 kohm', 'cutoff_hz', 1000, 'C1', 'R1'),
 ])
 def test_passive_target_solves_missing_part(prompt,supplied,solved,quantity,target,series,shunt):
     response = client.post('/v2/draft', json={'parser':'local','prompt':prompt})
