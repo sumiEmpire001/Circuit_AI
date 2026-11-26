@@ -95,7 +95,7 @@ document.querySelectorAll('button,input,select,textarea').forEach(b=>b.disabled=
 function renderCatalog(){
   const filter=$('catalogSearch').value.trim().toLowerCase();
   const matches=Object.entries(catalog).filter(([id,p])=>
-    [id,p.name,p.manufacturer,p.package].join(' ').toLowerCase().includes(filter));
+    [id,p.name,p.manufacturer,p.package,p.logic_levels].join(' ').toLowerCase().includes(filter));
   $('catalogCount').textContent=matches.length>25
     ?'Showing 25 of '+matches.length+' matches. Refine your search.'
     :matches.length+' matching components';
@@ -106,7 +106,7 @@ function renderCatalog(){
     row.className='hint';
     const title=document.createElement('strong');
     title.textContent=p.name;
-    const details=[p.manufacturer,p.package,p.supply_range ? p.supply_range.join('–')+' V' : null].filter(Boolean);
+    const details=[p.manufacturer,p.package,p.logic_levels,p.supply_range ? p.supply_range.join('–')+' V' : null].filter(Boolean);
     const pins=Object.keys(p.pins).map(pin=>p.pin_labels ? pin+' '+p.pin_labels[pin] : pin);
     row.append(title,document.createElement('br'),details.length ? details.join(' · ')+' · ' : '', id,
       document.createElement('br'),'Pins: '+pins.join(', '));

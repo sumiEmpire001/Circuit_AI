@@ -23,7 +23,8 @@ RC_CALC = (
     'Connect V1 positive to R1 pin 1 on net INPUT. Connect R1 pin 2 to C1 pin 1 on net OUT. '
     'Connect C1 pin 2 to V1 negative on net RETURN.'
 )
-REFERENCE_CASES = {'rc_long':'rc', 'bridge_long':'bridge', 'temperature_motor_local':'temperature_motor'}
+REFERENCE_CASES = {'rc_long':'rc', 'bridge_long':'bridge', 'temperature_motor_local':'temperature_motor',
+                   'hct_nand':'nand_gate'}
 PIN_PROSE = (
     'Title: Twin RC outputs. Use a 5 V DC source named V1, a 4.7 kΩ resistor named R4, '
     'and a 10 kohm resistor named R5. Use a 100 nF capacitor named C4 and a 220 nF capacitor named C5. '
@@ -62,15 +63,17 @@ CASES += [
     ('comparator','builtin','comparator',6,5),
 ]
 EXPLICIT_COMPONENTS = {
+    'hct_nand': 'J1 connector3; U1 sn74hct00dr; J2 connector2; V1 dc_source 5 V; C1 capacitor 100 nF',
     'unseen_buffer': 'V1 dc_source 5 V; U1 lm358n; C1 capacitor 100 nF; J1 connector2; J2 connector2',
     'unseen_dual_filter': 'V1 dc_source 5 V; R1 resistor 1 kohm; R2 resistor 2 kohm; C1 capacitor 100 nF; R3 resistor 10 kohm; C2 capacitor 10 nF; J1 connector2',
     'unseen_dual_load': 'V1 dc_source 5 V; R1 resistor 330 ohm; R2 resistor 330 ohm; R3 resistor 10 kohm; R4 resistor 10 kohm; D1 led Red; D2 led Red; Q1 npn; Q2 npn; J1 connector3',
 }
 for label, component_string in EXPLICIT_COMPONENTS.items():
     components = component_string.split('; ')
+    fixture = FIXTURES[REFERENCE_CASES.get(label, label)]
     lines = ['component '+component for component in components]
-    lines += [f'net {name} {pins}' for name,pins in FIXTURES[label].items()]
-    CASES.append((label,'builtin','\n'.join(lines),len(components),len(FIXTURES[label])))
+    lines += [f'net {name} {pins}' for name,pins in fixture.items()]
+    CASES.append((label,'builtin','\n'.join(lines),len(components),len(fixture)))
 
 STRESS_CASES = {'ledbank_16': 16, 'ledbank_32': 32, 'ledbank_64': 64}
 for label, channels in STRESS_CASES.items():
@@ -133,11 +136,15 @@ def main():
                 library.click()
                 page.get_by_text('Component catalog', exact=True).click()
                 page.get_by_label('Search component catalog').fill('SN74HC00N')
-                catalog = page.locator('#catalog')
-                assert '3 1Y' in catalog.inner_text()
-                assert catalog.get_by_role('link', name='Datasheet').get_attribute('href') == 'https://www.ti.com/lit/ds/symlink/sn74hc00.pdf'
+                entry = page.locator('#catalog p').filter(
+                    has=page.get_by_text('SN74HC00N Quad NAND (PDIP-14)', exact=True)
+                )
+                assert '3 1Y' in entry.inner_text()
+                assert entry.get_by_role('link', name='Datasheet').get_attribute('href') == 'https://www.ti.com/lit/ds/symlink/sn74hc00.pdf'
             if label=='comparator':
                 assert page.locator('#canvas').get_by_text('1 1OUT (OC)', exact=True).count()==1
+            if label=='hct_nand':
+                assert page.locator('#canvas').get_by_text('SN74HCT00DR', exact=True).count()==1
             page.locator('#canvas').screenshot(path=str(out/(label+'.png')))
             results.append(dict(case=label,components=parts,nets=nets,routed=len(data['routed_nets']),label_only=len(data['unrouted_nets']),contacts=len(data['routing_audit']['conflicts']),continuous=len(data['routing_audit']['continuous_nets']),interrupted=len(data['routing_audit']['interrupted_nets']), **measured))
             (out/'results.json').write_text(json.dumps(results,indent=2))

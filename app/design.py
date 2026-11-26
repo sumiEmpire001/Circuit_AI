@@ -79,6 +79,9 @@ def check_design(design):
         spec=catalog[c.part]
         for pin in spec['required']:
             if f'{c.ref}.{pin}' not in pin_net: issue(c.ref,'unconnected_required',f'{c.ref}.{pin} needs a connection',True)
+        for pin in spec.get('no_connect', ()):
+            if f'{c.ref}.{pin}' in pin_net:
+                issue(c.ref, 'no_connect_pin', f'{c.ref}.{pin} is marked NC for this package and must remain open', True)
         if spec.get('input_family') == 'CMOS':
             floating = [f'{pin} ({spec["pin_labels"][pin]})' for pin, role in spec['pins'].items()
                         if role == 'input' and f'{c.ref}.{pin}' not in pin_net]

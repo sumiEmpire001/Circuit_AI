@@ -2,6 +2,7 @@ from app.catalog import CATALOG
 from app.design import check_design
 from app.design_examples import comparator, mega_ldr, nand_gate
 from app.multi_render import render_design
+from app.package_catalog import EXISTING_HC_VARIANTS, HCT_VARIANTS, LOGIC_FAMILIES, TI_PACKAGE_CODES
 import xml.etree.ElementTree as ET
 import pytest
 
@@ -130,3 +131,50 @@ def test_comparator_supply_checks_use_both_pins(volts, reversed_supply, code):
         positive.pins.append('U1.4')
         negative.pins.append('U1.8')
     assert code in {error['code'] for error in check_design(design)['errors']}
+
+
+LOGIC_ORDERABLES = {
+    **{family: details[-1] for family, details in LOGIC_FAMILIES.items()},
+    **EXISTING_HC_VARIANTS,
+    **HCT_VARIANTS,
+}
+
+
+@pytest.mark.parametrize('family,suffix', [
+    (family, suffix) for family, codes in LOGIC_ORDERABLES.items() for suffix in codes.split()
+])
+def test_ti_logic_orderables_map_to_one_physical_outline(family, suffix):
+    model = family + suffix.lower()
+    spec = CATALOG[model]
+    code, outline = TI_PACKAGE_CODES[suffix]
+    assert spec['mpn'] == model.upper()
+    assert spec['package'] == f'{outline}-{len(spec["pins"])} ({code})'
+    assert spec['source'].endswith(f'/{family}.pdf')
+    assert set(spec['pin_labels']) == set(spec['pins'])
+    assert set(spec['active_low']) <= set(spec['pins'])
+    assert set(spec['no_connect']).isdisjoint(spec['required'])
+    assert spec['supply_range'] == ((4.5, 5.5) if family.startswith('sn74hct') else (2.0, 6.0))
+
+
+def test_ti_hct_supply_limits_and_nc_pin_checks():
+    design = nand_gate()
+    u1 = next(component for component in design.components if component.ref == 'U1')
+    source = next(component for component in design.components if component.ref == 'V1')
+    u1.part = 'sn74hct00dr'
+    source.value = '3.3 V'
+    assert {error['code'] for error in check_design(design)['errors']} == {'voltage_mismatch'}
+    source.value = '5 V'
+    u1.part = 'sn74hc20pwr'
+    checks = check_design(design)
+    nc_errors = [issue['message'] for issue in checks['errors'] if issue['code']=='no_connect_pin']
+    assert nc_errors == ['U1.3 is marked NC for this package and must remain open']
+
+
+def test_ti_shift_register_control_and_output_polarity():
+    spec = CATALOG['sn74hc165dbr']
+    assert spec['pin_labels']['1'] == 'SH_LD'
+    assert spec['pin_labels']['7'] == 'QH_N'
+    assert spec['pin_labels']['9'] == 'QH'
+    assert spec['pins']['1'] == 'input'
+    assert spec['pins']['7'] == spec['pins']['9'] == 'output'
+    assert spec['active_low'] == ['1', '7']

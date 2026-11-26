@@ -1,6 +1,6 @@
 # Circuit AI project status
 
-Phase 3 component catalog work started on `phase3-component-intelligence`, based on Phase 2 preview commit `a35dae9`. The analog package update is on `phase3-analog-packages`. The independent connection accuracy threshold and free-form interpretation gaps remain open.
+Phase 3 component catalog work started on `phase3-component-intelligence`, based on Phase 2 preview commit `a35dae9`. The current catalog expansion builds on the analog package update and is on `phase3-package-expansion`. The independent connection accuracy threshold and free-form interpretation gaps remain open.
 
 ## Phase 3 · Electronic component intelligence
 
@@ -29,6 +29,14 @@ The second tranche brings the catalog to 56 entries. It covers two op amps, thre
 | LM35DZ/NOPB, LM35DT/NOPB | [TI LM35 datasheet](https://www.ti.com/lit/ds/symlink/lm35.pdf), sections 5 and 6.3 |
 
 ERC evaluates the voltage directly across both supply pins when an explicit DC source spans them. It distinguishes open-collector outputs from driven outputs and rejects direct ties to a supply or driven output. Studio marks open-collector pins and includes a threshold comparator with a resistive pull-up. The package checks leave input common-mode range, output load, and pull-up sizing for separate review.
+
+### Digital package expansion
+
+The catalog now contains 186 entries, including 153 with source links and physical pin labels. This update adds 130 orderable TI logic device and package combinations across 34 families. Each device family counts a physical package once. The addition excludes alternate order codes for an identical physical package and package codes without a matching pin diagram and active orderable listing. See [package_catalog.py](app/package_catalog.py) for manufacturer datasheet links.
+
+The additions include decoders, multiplexers, shift registers, flip-flops, and counters, alongside HC and TTL-compatible HCT gates. Studio presents the logic family and recommended supply range. ERC flags connections to pins marked NC. Input thresholds, loading, clock timing, and current budgets still require separate review.
+
+The catalog exceeds the 145-entry intermediate checkpoint by count. The 1,100-entry target, breadth across additional component classes, completeness of electrical rules, and independent routing acceptance remain open.
 
 ## CircuitLM 0.5 checkpoint
 
