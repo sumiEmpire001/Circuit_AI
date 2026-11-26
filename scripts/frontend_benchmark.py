@@ -59,6 +59,7 @@ CASES += [
     ('ldr','local','Arduino Mega with an LDR light sensor',4,3),
     ('schmitt_inverter','local','Make a 5V SN74HC14N inverter with input and output connectors.',5,4),
     ('nand_gate','builtin','nand_gate',5,5),
+    ('comparator','builtin','comparator',6,5),
 ]
 EXPLICIT_COMPONENTS = {
     'unseen_buffer': 'V1 dc_source 5 V; U1 lm358n; C1 capacitor 100 nF; J1 connector2; J2 connector2',
@@ -135,6 +136,8 @@ def main():
                 catalog = page.locator('#catalog')
                 assert '3 1Y' in catalog.inner_text()
                 assert catalog.get_by_role('link', name='Datasheet').get_attribute('href') == 'https://www.ti.com/lit/ds/symlink/sn74hc00.pdf'
+            if label=='comparator':
+                assert page.locator('#canvas').get_by_text('1 1OUT (OC)', exact=True).count()==1
             page.locator('#canvas').screenshot(path=str(out/(label+'.png')))
             results.append(dict(case=label,components=parts,nets=nets,routed=len(data['routed_nets']),label_only=len(data['unrouted_nets']),contacts=len(data['routing_audit']['conflicts']),continuous=len(data['routing_audit']['continuous_nets']),interrupted=len(data['routing_audit']['interrupted_nets']), **measured))
             (out/'results.json').write_text(json.dumps(results,indent=2))

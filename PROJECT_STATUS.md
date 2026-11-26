@@ -1,6 +1,6 @@
 # Circuit AI project status
 
-Phase 3 component catalog work is active on `phase3-component-intelligence`, based on Phase 2 preview commit `a35dae9`. The independent connection accuracy threshold and free-form interpretation gaps remain open.
+Phase 3 component catalog work started on `phase3-component-intelligence`, based on Phase 2 preview commit `a35dae9`. The analog package update is on `phase3-analog-packages`. The independent connection accuracy threshold and free-form interpretation gaps remain open.
 
 ## Phase 3 · Electronic component intelligence
 
@@ -15,6 +15,20 @@ The launch tranche adds eight physical Texas Instruments PDIP packages, bringing
 Each entry uses the datasheet's N-package pin function table and recommended operating conditions. Studio shows physical pin numbers, signal names, and polarity bubbles on package-level symbols. ERC checks required power pins, direct DC supply range, and push-pull outputs tied to rails. It flags visibly unconnected CMOS inputs. Input threshold, output drive, and current budgets require separate validation.
 
 The 98% target requires an independently scored connection benchmark with zero unintended connections. The existing published pilot and per-package tests provide progress evidence for that gate.
+
+### Analog packages and supply checks
+
+The second tranche brings the catalog to 56 entries. It covers two op amps, three comparators, a CMOS timer, and two physical pinouts of the LM35 temperature sensor. The earlier logical sensor definition still supports existing designs.
+
+| Devices | Manufacturer source |
+| --- | --- |
+| LM358P, LM2904P | [TI LM358 and LM2904 datasheet](https://www.ti.com/lit/ds/symlink/lm358.pdf), sections 4 and 5.3 |
+| LM393P, LM2903P | [TI LM393 and LM2903 datasheet](https://www.ti.com/lit/ds/symlink/lm393.pdf), sections 4, 5.2 and 6 |
+| LM311P | [TI LM311 datasheet](https://www.ti.com/lit/ds/symlink/lm311.pdf), sections 5 and 6.3 |
+| TLC555CP | [TI TLC555 datasheet](https://www.ti.com/lit/ds/symlink/tlc555.pdf), sections 4 and 5.3 |
+| LM35DZ/NOPB, LM35DT/NOPB | [TI LM35 datasheet](https://www.ti.com/lit/ds/symlink/lm35.pdf), sections 5 and 6.3 |
+
+ERC evaluates the voltage directly across both supply pins when an explicit DC source spans them. It distinguishes open-collector outputs from driven outputs and rejects direct ties to a supply or driven output. Studio marks open-collector pins and includes a threshold comparator with a resistive pull-up. The package checks leave input common-mode range, output load, and pull-up sizing for separate review.
 
 ## CircuitLM 0.5 checkpoint
 

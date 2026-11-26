@@ -1,6 +1,6 @@
 from app.catalog import CATALOG
 from app.design import check_design
-from app.design_examples import mega_ldr, nand_gate
+from app.design_examples import comparator, mega_ldr, nand_gate
 from app.multi_render import render_design
 import xml.etree.ElementTree as ET
 import pytest
@@ -77,3 +77,56 @@ def test_nand_erc_reports_floating_inputs_output_on_rail_and_overvoltage():
     assert floating['target'] == 'U1'
     assert '4 (2A)' in floating['message']
     assert '6 (2Y)' not in floating['message']
+
+
+@pytest.mark.parametrize('part_id,pins,span,sinks', [
+    ('lm358p', 'OUT1 IN1- IN1+ V- IN2+ IN2- OUT2 V+', (3, 30), ()),
+    ('lm2904p', 'OUT1 IN1- IN1+ V- IN2+ IN2- OUT2 V+', (3, 26), ()),
+    ('lm393p', '1OUT 1IN- 1IN+ GND 2IN+ 2IN- 2OUT VCC', (2, 30), ('1', '7')),
+    ('lm2903p', '1OUT 1IN- 1IN+ GND 2IN+ 2IN- 2OUT VCC', (2, 30), ('1', '7')),
+    ('lm311p', 'EMIT IN+ IN- VCC- BAL BAL_STRB COL VCC+', (3.5, 30), ('7',)),
+    ('tlc555cp', 'GND TRIG OUT RESET CONT THRES DISCH VDD', (2, 15), ('7',)),
+    ('lm35dz', 'VS VOUT GND', (4, 30), ()),
+    ('lm35dt', 'VS GND VOUT', (4, 30), ()),
+])
+def test_ti_analog_package_pinouts(part_id, pins, span, sinks):
+    part = CATALOG[part_id]
+    assert list(part['pin_labels'].values()) == pins.split()
+    assert part['supply_range'] == span
+    assert part['open_collector'] == list(sinks)
+    assert part['supply_return'] in part['required']
+
+
+def test_comparator_example_has_valid_supply_and_pullup():
+    design = comparator()
+    checks = check_design(design)
+    assert not checks['errors']
+    assert not checks['warnings']
+
+
+def test_open_collector_net_accepts_multiple_sinks_and_rejects_driven_output():
+    design = comparator()
+    output = next(n for n in design.nets if n.name == 'OUTPUT')
+    output.pins.append('U1.7')
+    assert not check_design(design)['errors']
+    supply = next(n for n in design.nets if n.name == 'VCC')
+    supply.pins.extend(output.pins)
+    design.nets.remove(output)
+    assert 'open_collector_conflict' in {error['code'] for error in check_design(design)['errors']}
+
+
+@pytest.mark.parametrize('volts,reversed_supply,code', [
+    ('1.5 V', False, 'voltage_mismatch'),
+    ('5 V', True, 'supply_polarity'),
+])
+def test_comparator_supply_checks_use_both_pins(volts, reversed_supply, code):
+    design = comparator()
+    next(c for c in design.components if c.ref == 'V1').value = volts
+    if reversed_supply:
+        positive = next(n for n in design.nets if n.name == 'VCC')
+        negative = next(n for n in design.nets if n.name == 'RETURN')
+        positive.pins.remove('U1.8')
+        negative.pins.remove('U1.4')
+        positive.pins.append('U1.4')
+        negative.pins.append('U1.8')
+    assert code in {error['code'] for error in check_design(design)['errors']}

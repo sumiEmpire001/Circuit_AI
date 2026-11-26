@@ -64,6 +64,13 @@ def voltage(value):
 def check_design(design):
     catalog=design.catalog(); refs={c.ref:c for c in design.components}
     pin_net={p:n.name for n in design.nets for p in n.pins}
+    source_pairs = {}
+    for c in design.components:
+        if c.part != 'dc_source':
+            continue
+        positive, negative = (pin_net.get(f'{c.ref}.{pin}') for pin in ('+', '-'))
+        if positive and negative and (source_voltage := voltage(c.value)) is not None:
+            source_pairs.setdefault((positive, negative), []).append(source_voltage)
     errors=[]; warnings=[]
     def issue(target,code,message,error=False):
         (errors if error else warnings).append(dict(target=target,code=code,message=message))
@@ -107,13 +114,29 @@ def check_design(design):
         members={r for r,_,_,_ in info}; first=next(iter(members))
         for r in members-{first}: graph[first].add(r); graph[r].add(first)
         roles=[i[2] for i in info]
+        sinks = [(r, p) for r, p, _, spec in info if p in spec.get('open_collector', ())]
+        driven = roles.count('output')-len(sinks)
         if 'power_out' in roles and 'ground' in roles: issue(n.name,'power_short','Supply output and ground are directly connected',True)
-        if roles.count('output')>1: issue(n.name,'output_conflict','Multiple push-pull outputs share this net',True)
+        if driven>1: issue(n.name,'output_conflict','Multiple driven outputs share this net',True)
+        if sinks and (driven or 'power_out' in roles):
+            issue(n.name, 'open_collector_conflict', 'Open-collector output shares a net with a driven output or direct supply', True)
         if roles.count('power_out')>1: issue(n.name,'multiple_supplies','Multiple supply outputs share this net; isolation is not modeled',True)
         sources=[voltage(refs[r].value) for r,p,role,s in info if refs[r].part=='dc_source' and p=='+']
         for r,p,role,s in info:
             if s.get('input_family') == 'CMOS' and role == 'output' and {'power_out', 'ground'}.intersection(roles):
                 issue(n.name, 'logic_output_on_rail', f'{r}.{p}: push-pull output is tied directly to a supply or ground', True)
+            if role=='power_in' and (return_pin := s.get('supply_return')):
+                return_net = pin_net.get(f'{r}.{return_pin}')
+                if return_net is not None:
+                    low, high = s['supply_range']
+                    span = source_pairs.get((n.name, return_net), ())
+                    if return_net==n.name or (return_net, n.name) in source_pairs:
+                        issue(n.name, 'supply_polarity', f'{r}.{p} and {r}.{return_pin}: shorted or reversed supply pins', True)
+                    elif any(not low<=value<=high for value in span):
+                        issue(n.name, 'voltage_mismatch', f'{r}.{p} requires {low:g}–{high:g} V above {r}.{return_pin}', True)
+                    elif not span:
+                        issue(n.name, 'unverified_supply', f'{r}.{p}: verify voltage across both supply pins')
+                continue
             if role=='power_in' and not sources:
                 issue(n.name,'unverified_supply',f'{r}.{p}: supply voltage is not directly traceable to a DC source')
             if role=='power_in' and (limits := s.get('supply_range')):

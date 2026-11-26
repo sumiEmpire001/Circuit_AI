@@ -160,3 +160,24 @@ def nand_gate():
 
 
 EXAMPLES['nand_gate'] = nand_gate
+
+
+def comparator():
+    return Design(title='LM393P threshold comparator', components=[
+        dict(ref='J1', part='connector3', value='Signal, reference, and return'),
+        dict(ref='U1', part='lm393p'),
+        dict(ref='J2', part='connector2', value='Comparator output'),
+        dict(ref='V1', part='dc_source', value='5 V'),
+        dict(ref='R1', part='resistor', value='10 kohm'),
+        dict(ref='C1', part='capacitor', value='100 nF'),
+    ], nets=[
+        dict(name='SIGNAL', pins=['J1.1', 'U1.3']),
+        dict(name='REFERENCE', pins=['J1.2', 'U1.2']),
+        dict(name='OUTPUT', pins=['U1.1', 'R1.2', 'J2.1']),
+        dict(name='VCC', pins=['V1.+', 'U1.8', 'R1.1', 'C1.1']),
+        dict(name='RETURN', pins=['V1.-', 'U1.4', 'U1.5', 'U1.6', 'J1.3', 'J2.2', 'C1.2']),
+    ], notes=['INPUTS: Supply external signal and reference voltages within the datasheet common-mode range.',
+              'R1 pulls the open-collector output high when the output transistor is off.'])
+
+
+EXAMPLES['comparator'] = comparator
