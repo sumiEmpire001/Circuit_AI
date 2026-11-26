@@ -15,3 +15,5 @@ Run `python -m scripts.routing_stress --cases 5000 --output routing-stress.json`
 These synthetic variants exercise layout and editing regressions. The independent acceptance benchmark still needs held-out external topologies and separate scoring of prompt interpretation.
 
 To score a frozen external fixture, supply its path with `python scripts/published_benchmark.py --fixture path/to/fixture.json`. The report includes the SHA-256 digest and case-level contact failures so runs can be tied to the same input data. Fixture provenance and independent review must be established separately.
+
+`published_v2.json` adds three separately versioned reference adaptations from TI's LM1117, LM35, and SN74HC00 application figures. The sources supply the topologies. The fixture records local adaptations and uses locally authored prompts. Its cases are outside the training fixtures and can be scored separately from published-v1.

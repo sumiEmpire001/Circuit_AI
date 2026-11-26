@@ -178,3 +178,46 @@ def test_ti_shift_register_control_and_output_polarity():
     assert spec['pins']['1'] == 'input'
     assert spec['pins']['7'] == spec['pins']['9'] == 'output'
     assert spec['active_low'] == ['1', '7']
+
+
+@pytest.mark.parametrize('key,package,min_input', [
+    ('lm1117dt_18', 'TO-252 (NDP)', 3.2),
+    ('lm1117dt_25', 'TO-252 (NDP)', 3.9),
+    ('lm1117dt_33', 'TO-252 (NDP)', 4.75),
+    ('lm1117dt_50', 'TO-252 (NDP)', 6.5),
+    ('lm1117t_25', 'TO-220 (NDE)', 3.9),
+    ('lm1117t_33', 'TO-220 (NDE)', 4.75),
+    ('lm1117t_50', 'TO-220 (NDE)', 6.5),
+])
+def test_lm1117_fixed_package_pinout(key, package, min_input):
+    part = CATALOG[key]
+    assert part['package'] == package
+    assert part['pin_labels'] == {'1': 'GND', '2': 'VOUT', '3': 'VIN'}
+    assert part['supply_range'] == (min_input, 15)
+    assert part['pins']['2'] == 'power_out'
+
+
+def test_lm1117_checks_output_capacitor_path_and_polarity():
+    from app.multi_api import builtin_design
+
+    design = builtin_design(
+        'component V1 dc_source 5 V\ncomponent U1 lm1117t_33\n'
+        'component C1 capacitor_polarized 10 uF\ncomponent J1 connector2\n'
+        'net VIN V1.+ U1.3\nnet VOUT U1.2 J1.1 C1.+\nnet RETURN V1.- U1.1 J1.2 C1.-'
+    )
+    assert not check_design(design)['errors']
+    design.nets[1].pins[-1], design.nets[2].pins[-1] = 'C1.-', 'C1.+'
+    assert {item['code'] for item in check_design(design)['errors']} == {'regulator_output_capacitor'}
+
+
+def test_pin_level_prompt_accepts_regulator_orderable_number():
+    from app.circuitlm import draft_local
+
+    design = draft_local(
+        'Use a 5 V DC source named V1, an LM1117T-3.3/NOPB named U1, '
+        'a 10 uF polarized capacitor named C1. '
+        'Connect V1 positive to U1 VIN. Connect U1 VOUT to C1 +. '
+        'Connect V1 negative to U1 GND and C1 -.'
+    )
+    assert next(component.part for component in design.components if component.ref=='U1') == 'lm1117t_33'
+    assert not check_design(design)['errors']

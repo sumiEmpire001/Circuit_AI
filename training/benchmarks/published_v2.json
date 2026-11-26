@@ -1,0 +1,63 @@
+{
+  "version": "published-v2",
+  "cases": [
+    {
+      "id": "ti_lm1117_fixed_output",
+      "source_url": "https://www.ti.com/lit/ds/symlink/lm1117.pdf",
+      "source_figure": "9-3",
+      "adaptation": "Chooses the 3.3 V TO-220 variant and a 5 V input. Adds an output connector.",
+      "prompt": "Draft a 3.3 V LM1117T-3.3/NOPB linear regulator from a 5 V supply. Put a 10 uF polarized capacitor on both the input and output, referenced to common ground. Expose the regulated output and ground on a two-pin connector.",
+      "components": [
+        {"ref": "V1", "part": "dc_source", "value": "5 V"},
+        {"ref": "U1", "part": "lm1117t_33", "value": ""},
+        {"ref": "C1", "part": "capacitor_polarized", "value": "10 uF"},
+        {"ref": "C2", "part": "capacitor_polarized", "value": "10 uF"},
+        {"ref": "J1", "part": "connector2", "value": ""}
+      ],
+      "nets": {
+        "VIN": ["V1.+", "U1.3", "C1.+"],
+        "VOUT": ["U1.2", "C2.+", "J1.1"],
+        "RETURN": ["V1.-", "U1.1", "C1.-", "C2.-", "J1.2"]
+      }
+    },
+    {
+      "id": "ti_lm35_basic",
+      "source_url": "https://www.ti.com/lit/ds/symlink/lm35.pdf",
+      "source_figure": "14",
+      "adaptation": "Chooses the LM35DZ TO-92 package, a 5 V source, and a connector for the output and return.",
+      "prompt": "Wire an LM35DZ TO-92 as a basic single-supply temperature sensor. Power it from 5 V and bring out the analog voltage and ground to a two-pin header.",
+      "components": [
+        {"ref": "V1", "part": "dc_source", "value": "5 V"},
+        {"ref": "U1", "part": "lm35dz", "value": ""},
+        {"ref": "J1", "part": "connector2", "value": ""}
+      ],
+      "nets": {
+        "VCC": ["V1.+", "U1.1"],
+        "VOUT": ["U1.2", "J1.1"],
+        "RETURN": ["V1.-", "U1.3", "J1.2"]
+      }
+    },
+    {
+      "id": "ti_hc00_sr_latch",
+      "source_url": "https://www.ti.com/lit/ds/symlink/sn74hc00.pdf",
+      "source_figure": "9-1",
+      "adaptation": "Uses the NAND feedback and reset pull-up from the published figure. A connector replaces the controller and the driven switch interface. The indicator load is omitted.",
+      "prompt": "Make an active-low SR latch with two gates of an SN74HC00N and a 5 V supply. Keep a 10 kohm pull-up on reset, expose set and reset on a header, and bring Q out on a separate connector. Ground the unused gates' inputs.",
+      "components": [
+        {"ref": "V1", "part": "dc_source", "value": "5 V"},
+        {"ref": "U1", "part": "sn74hc00n", "value": ""},
+        {"ref": "R1", "part": "resistor", "value": "10 kohm"},
+        {"ref": "J1", "part": "connector3", "value": ""},
+        {"ref": "J2", "part": "connector2", "value": ""}
+      ],
+      "nets": {
+        "VCC": ["V1.+", "R1.1", "U1.14"],
+        "RETURN": ["V1.-", "U1.7", "J1.3", "J2.2", "U1.9", "U1.10", "U1.12", "U1.13"],
+        "RESET_N": ["J1.1", "R1.2", "U1.1"],
+        "SET_N": ["J1.2", "U1.5"],
+        "Q": ["U1.6", "U1.2", "J2.1"],
+        "Q_N": ["U1.3", "U1.4"]
+      }
+    }
+  ]
+}

@@ -206,3 +206,21 @@ PACKAGE_CATALOG.update({
         ('1', '2'), '2', (4, 30),
     ),
 })
+
+# The TO-252 and TO-220 pin tables use pin 2 and the tab for the same output.
+# The minimum input values are the lower bounds of TI's fixed-output tests.
+for package, order_code, outputs in (
+    ('TO-252 (NDP)', 'DT', ((1.8, 3.2), (2.5, 3.9), (3.3, 4.75), (5.0, 6.5))),
+    ('TO-220 (NDE)', 'T', ((2.5, 3.9), (3.3, 4.75), (5.0, 6.5))),
+):
+    for output, minimum_input in outputs:
+        model = f'LM1117{order_code}-{output:.1f}/NOPB'
+        key = f'lm1117{order_code.lower()}_{round(output*10)}'
+        PACKAGE_CATALOG[key] = dict(
+            analog_package(
+                model, f'{output:g} V regulator', package, 'lm1117',
+                (('GND', 'ground'), ('VOUT', 'power_out'), ('VIN', 'power_in')),
+                ('1', '3'), '1', (minimum_input, 15),
+            ),
+            regulator_output='2',
+        )

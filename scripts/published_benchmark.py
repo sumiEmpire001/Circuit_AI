@@ -89,6 +89,8 @@ def main():
         parser.error('The fixture must contain at least one case, with a unique id for each case.')
     if any(not case_id or not case_id.replace('_', '').replace('-', '').isalnum() for case_id in case_ids):
         parser.error('Case ids must contain only letters, digits, underscores, or hyphens.')
+    if any(not case['nets'] for case in fixture['cases']):
+        parser.error('Each reference must contain at least one expected net.')
     out = Path(os.getenv('PUBLISHED_RESULTS_DIR', 'published-results'))
     out.mkdir(parents=True,exist_ok=True)
     with sync_playwright() as p:
@@ -110,6 +112,10 @@ def main():
         ),
         'cases':results,
     }
+    report['routing_accuracy'] = report['routing_nets_passed']/report['routing_nets_total']
+    report['routing_threshold_met_for_fixture'] = (
+        report['routing_accuracy']>=0.98 and report['cases_with_unintended_contacts']==0
+    )
     (out/'results.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report,indent=2))
 

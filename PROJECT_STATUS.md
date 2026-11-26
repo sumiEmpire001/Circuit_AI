@@ -1,6 +1,6 @@
 # Circuit AI project status
 
-Phase 3 component catalog work started on `phase3-component-intelligence`, based on Phase 2 preview commit `a35dae9`. The current catalog expansion builds on the analog package update and is on `phase3-package-expansion`. The independent connection accuracy threshold and free-form interpretation gaps remain open.
+Phase 3 component catalog work started on `phase3-component-intelligence`, based on Phase 2 preview commit `a35dae9`. The current power-package and benchmark expansion builds on `phase3-package-expansion`. The independent connection accuracy threshold and free-form interpretation gaps remain open.
 
 ## Phase 3 · Electronic component intelligence
 
@@ -39,6 +39,12 @@ The additions include decoders, multiplexers, shift registers, flip-flops, and c
 The catalog exceeds the 145-entry intermediate checkpoint by count. The 1,100-entry target, breadth across additional component classes, completeness of electrical rules, and independent routing acceptance remain open.
 
 The authored regression run passed 288 backend tests and 284 of 284 strict nets across 32 Chromium cases. The placement stress run passed 25,000 of 25,000 nets through 5,000 seeded variations of eight authored examples, with zero unintended contacts. The published-v1 pilot yielded 15 of 15 routed reference nets and zero exact interpretations of four open-ended prompts.
+
+### Power devices and external reference cases
+
+The catalog now contains 193 entries, including 160 with source links and physical pin labels. Seven fixed-output LM1117 package and voltage combinations cover active TI TO-252 and TO-220 orderables. The records use the physical pin table, the recommended maximum input and the lower bounds of the fixed-output electrical characteristics tests. Studio flags missing or reversed output capacitors and identifies capacitance and ESR as review items. Output current and thermal design remain outside ERC. [TI LM1117 datasheet](https://www.ti.com/lit/ds/symlink/lm1117.pdf)
+
+The separately versioned [published-v2 fixture](training/benchmarks/published_v2.json) adds three manufacturer-authored circuit topologies with documented local adaptations. Chromium matched 12 of 12 reference nets with zero unintended contacts when supplied with the expected netlists. All three free-form interpretations requested clarification. This is a reference pilot. Phase 3 acceptance requires a larger independent benchmark, at least 98% connection accuracy, and zero unintended connections.
 
 ## CircuitLM 0.5 checkpoint
 

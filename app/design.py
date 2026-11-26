@@ -64,6 +64,13 @@ def voltage(value):
 def check_design(design):
     catalog=design.catalog(); refs={c.ref:c for c in design.components}
     pin_net={p:n.name for n in design.nets for p in n.pins}
+    capacitor_returns = set()
+    for component in design.components:
+        if component.part=='capacitor':
+            ends = [pin_net.get(f'{component.ref}.{pin}') for pin in ('1', '2')]
+            capacitor_returns.update((tuple(ends), tuple(reversed(ends))))
+        elif component.part=='capacitor_polarized':
+            capacitor_returns.add(tuple(pin_net.get(f'{component.ref}.{pin}') for pin in ('+', '-')))
     source_pairs = {}
     for c in design.components:
         if c.part != 'dc_source':
@@ -82,6 +89,14 @@ def check_design(design):
         for pin in spec.get('no_connect', ()):
             if f'{c.ref}.{pin}' in pin_net:
                 issue(c.ref, 'no_connect_pin', f'{c.ref}.{pin} is marked NC for this package and must remain open', True)
+        if output_pin := spec.get('regulator_output'):
+            output_net = pin_net.get(f'{c.ref}.{output_pin}')
+            return_net = pin_net.get(f'{c.ref}.{spec["supply_return"]}')
+            if output_net and return_net:
+                if (output_net, return_net) not in capacitor_returns:
+                    issue(c.ref, 'regulator_output_capacitor', 'Connect the required output capacitor from VOUT to GND with correct polarity.', True)
+                else:
+                    issue(c.ref, 'regulator_stability_review', 'Verify the output capacitor capacitance and ESR against the datasheet.')
         if spec.get('input_family') == 'CMOS':
             floating = [f'{pin} ({spec["pin_labels"][pin]})' for pin, role in spec['pins'].items()
                         if role == 'input' and f'{c.ref}.{pin}' not in pin_net]

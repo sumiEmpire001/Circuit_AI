@@ -34,7 +34,11 @@ UNIT_FAMILIES = {
 }
 UNIT_FAMILIES['capacitor_polarized'] = UNIT_FAMILIES['capacitor']
 VALUE = re.compile(rf'({NUMBER})\s*([a-zA-ZµμΩ]+)')
-NAMES = {**{part: part for part in CATALOG}, **PART_NAMES}
+NAMES = {
+    **{part: part for part in CATALOG},
+    **{spec['mpn'].lower(): part for part, spec in CATALOG.items() if spec.get('mpn')},
+    **PART_NAMES,
+}
 ORDERED_NAMES = sorted(NAMES, key=len, reverse=True)
 
 
