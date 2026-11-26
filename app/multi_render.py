@@ -297,11 +297,19 @@ def render_design(design,validation,route_order=None):
                         parts.append(f'<rect x="{x+53+col*14}" y="{y+34+row*22}" width="11" height="17" fill="#8bb8ff" opacity=".23"/>')
                 parts.append(f'<text x="{x+w/2}" y="{y+47}" text-anchor="middle" style="fill:#e5f1ff;font-family:monospace">16 × 2 LCD</text>')
                 parts.append(f'<text x="{x+w/2}" y="{y+69}" text-anchor="middle" style="fill:#e5f1ff;font-family:monospace">HD44780 parallel</text>')
+            elif kind=='logic_package':
+                text(x+w/2,y+23,spec['mpn'],anchor='middle')
+                text(x+w/2,y+43,spec['logic_function'],anchor='middle')
             else: text(x+w/2,y+30,('Arduino Uno R3' if c.part=='arduino_uno' else spec['name'][:28]),anchor='middle')
         for pin in spec['pins']:
             px,py,side=points[f'{c.ref}.{pin}'];left=side=='left';edge=x if left else x+w
             net=pin_net.get(f'{c.ref}.{pin}')
-            line(f'M {px} {py} H {edge}','wire')
+            if pin in spec.get('active_low', ()):
+                direction = -1 if left else 1
+                line(f'M {px} {py} H {edge+8*direction}','wire')
+                parts.append(f'<circle class="symbol" cx="{edge+4*direction}" cy="{py}" r="4" data-active-low="{c.ref}.{pin}"/>')
+            else:
+                line(f'M {px} {py} H {edge}','wire')
             label=pin+(' '+LCD_LABELS[pin] if c.part=='lcd1602' else ' '+spec['pin_labels'][pin] if spec.get('pin_labels') else '')
             text(edge+5 if left else edge-5,py-5,label,'pin','start' if left else 'end')
             if net:

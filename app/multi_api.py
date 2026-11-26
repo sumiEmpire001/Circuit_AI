@@ -95,7 +95,7 @@ def studio(): return Path(__file__).with_name('studio.html').read_text()
 
 @router.get('/v2/catalog')
 def catalog():
-    return dict(version='0.4.3',parts=CATALOG,limits=dict(components=200,nets=1000,custom_parts=100,pins_per_custom_part=64),
+    return dict(version='0.5.0',parts=CATALOG,limits=dict(components=200,nets=1000,custom_parts=100,pins_per_custom_part=64),
                 ai_configured=True,
                 notes='Definitions with pin_labels use the cited package pin numbers. Generic symbols use logical terminal names.')
 

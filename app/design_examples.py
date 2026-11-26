@@ -140,3 +140,23 @@ def ne555_astable():
 EXAMPLES['ne555_astable'] = ne555_astable
 
 EXAMPLES['at89c51_adc'] = at89c51_adc
+
+
+def nand_gate():
+    return Design(title='SN74HC00N two-input NAND gate', components=[
+        dict(ref='J1', part='connector3', value='Logic inputs A and B'),
+        dict(ref='U1', part='sn74hc00n'),
+        dict(ref='J2', part='connector2', value='Logic output'),
+        dict(ref='V1', part='dc_source', value='5 V'),
+        dict(ref='C1', part='capacitor', value='100 nF'),
+    ], nets=[
+        dict(name='INPUT_A', pins=['J1.1', 'U1.1']),
+        dict(name='INPUT_B', pins=['J1.2', 'U1.2']),
+        dict(name='OUTPUT', pins=['U1.3', 'J2.1']),
+        dict(name='VCC', pins=['V1.+', 'U1.14', 'C1.1']),
+        dict(name='GND', pins=['V1.-', 'U1.7', 'C1.2', 'J1.3', 'J2.2',
+                               'U1.4', 'U1.5', 'U1.9', 'U1.10', 'U1.12', 'U1.13']),
+    ], notes=['Drive both inputs at valid CMOS logic levels. Tie unused inputs to ground and leave unused outputs open.'])
+
+
+EXAMPLES['nand_gate'] = nand_gate

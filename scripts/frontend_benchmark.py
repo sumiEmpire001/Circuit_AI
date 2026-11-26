@@ -58,6 +58,7 @@ CASES += [
     ('temperature_motor_local','local','Control a 6V DC motor using an Arduino Uno, LM35 temperature sensor and L293D driver.',8,9),
     ('ldr','local','Arduino Mega with an LDR light sensor',4,3),
     ('schmitt_inverter','local','Make a 5V SN74HC14N inverter with input and output connectors.',5,4),
+    ('nand_gate','builtin','nand_gate',5,5),
 ]
 EXPLICIT_COMPONENTS = {
     'unseen_buffer': 'V1 dc_source 5 V; U1 lm358n; C1 capacitor 100 nF; J1 connector2; J2 connector2',
@@ -125,6 +126,15 @@ def main():
                 assert 'calculated nominal value' in page.locator('#validation').inner_text()
             if label=='rc_calculation':
                 assert '1592 Hz' in page.locator('#calculations').inner_text()
+            if label=='nand_gate':
+                assert page.locator('#canvas [data-active-low="U1.3"]').count()==1
+                library = page.get_by_text('Diagnostics and component library', exact=True)
+                library.click()
+                page.get_by_text('Component catalog', exact=True).click()
+                page.get_by_label('Search component catalog').fill('SN74HC00N')
+                catalog = page.locator('#catalog')
+                assert '3 1Y' in catalog.inner_text()
+                assert catalog.get_by_role('link', name='Datasheet').get_attribute('href') == 'https://www.ti.com/lit/ds/symlink/sn74hc00.pdf'
             page.locator('#canvas').screenshot(path=str(out/(label+'.png')))
             results.append(dict(case=label,components=parts,nets=nets,routed=len(data['routed_nets']),label_only=len(data['unrouted_nets']),contacts=len(data['routing_audit']['conflicts']),continuous=len(data['routing_audit']['continuous_nets']),interrupted=len(data['routing_audit']['interrupted_nets']), **measured))
             (out/'results.json').write_text(json.dumps(results,indent=2))

@@ -1,4 +1,5 @@
 {
+  "nand_gate": {"INPUT_A": "J1.1 U1.1", "INPUT_B": "J1.2 U1.2", "OUTPUT": "U1.3 J2.1", "VCC": "V1.+ U1.14 C1.1", "GND": "V1.- U1.7 C1.2 J1.3 J2.2 U1.4 U1.5 U1.9 U1.10 U1.12 U1.13"},
   "target_divider": {"INPUT": "V1.+ R1.1", "OUT": "R1.2 R2.1", "RETURN": "R2.2 V1.-"},
   "target_filter": {"INPUT": "V1.+ R1.1", "OUT": "R1.2 C1.1", "RETURN": "C1.2 V1.-"},
   "target_high_pass": {"INPUT": "V1.+ C4.1", "OUT": "C4.2 R1.1", "RETURN": "R1.2 V1.-"},

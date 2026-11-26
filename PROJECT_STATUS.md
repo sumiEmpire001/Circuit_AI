@@ -1,6 +1,20 @@
 # Circuit AI project status
 
-Phase 2 remains active on `phase2-independent-model`. Phase 4 and production changes require separate approval and evidence from the quality gates.
+Phase 3 component catalog work is active on `phase3-component-intelligence`, based on Phase 2 preview commit `a35dae9`. The independent connection accuracy threshold and free-form interpretation gaps remain open.
+
+## Phase 3 · Electronic component intelligence
+
+The launch tranche adds eight physical Texas Instruments PDIP packages, bringing the catalog to 48 entries including the existing generic and logical definitions. The catalog roadmap calls for 145 entries at the intermediate checkpoint and 1,100 at the final checkpoint.
+
+| Function | Reviewed PDIP packages |
+| --- | --- |
+| NAND, NOR and inverter | [SN74HC00N](https://www.ti.com/lit/ds/symlink/sn74hc00.pdf), [SN74HC02N](https://www.ti.com/lit/ds/symlink/sn74hc02.pdf), [SN74HC04N](https://www.ti.com/lit/ds/symlink/sn74hc04.pdf) |
+| AND, OR and XOR | [SN74HC08N](https://www.ti.com/lit/ds/symlink/sn74hc08.pdf), [SN74HC32N](https://www.ti.com/lit/ds/symlink/sn74hc32.pdf), [SN74HC86N](https://www.ti.com/lit/ds/symlink/sn74hc86.pdf) |
+| Flip-flop and decoder | [SN74HC74N](https://www.ti.com/lit/ds/symlink/sn74hc74.pdf), [SN74HC138N](https://www.ti.com/lit/ds/symlink/sn74hc138.pdf) |
+
+Each entry uses the datasheet's N-package pin function table and recommended operating conditions. Studio shows physical pin numbers, signal names, and polarity bubbles on package-level symbols. ERC checks required power pins, direct DC supply range, and push-pull outputs tied to rails. It flags visibly unconnected CMOS inputs. Input threshold, output drive, and current budgets require separate validation.
+
+The 98% target requires an independently scored connection benchmark with zero unintended connections. The existing published pilot and per-package tests provide progress evidence for that gate.
 
 ## CircuitLM 0.5 checkpoint
 

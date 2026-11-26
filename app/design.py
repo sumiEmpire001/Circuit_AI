@@ -72,6 +72,11 @@ def check_design(design):
         spec=catalog[c.part]
         for pin in spec['required']:
             if f'{c.ref}.{pin}' not in pin_net: issue(c.ref,'unconnected_required',f'{c.ref}.{pin} needs a connection',True)
+        if spec.get('input_family') == 'CMOS':
+            floating = [f'{pin} ({spec["pin_labels"][pin]})' for pin, role in spec['pins'].items()
+                        if role == 'input' and f'{c.ref}.{pin}' not in pin_net]
+            if floating:
+                issue(c.ref, 'floating_cmos_input', 'Give these CMOS inputs a defined logic level: '+', '.join(floating))
         if c.part in ('servo_generic','relay_spdt','dc_motor','lcd1602_i2c_5v','ssd1306_i2c_3v3','capacitor_polarized','pnp','pmos','fuse'):
             issue(c.ref,'rating_review','Verify exact module pinout, voltage, current, polarity and interface requirements against its datasheet')
         if c.part in design.custom_parts: issue(c.ref,'custom_unverified','Custom symbol: verify pinout and voltage limits against the datasheet')
@@ -107,6 +112,8 @@ def check_design(design):
         if roles.count('power_out')>1: issue(n.name,'multiple_supplies','Multiple supply outputs share this net; isolation is not modeled',True)
         sources=[voltage(refs[r].value) for r,p,role,s in info if refs[r].part=='dc_source' and p=='+']
         for r,p,role,s in info:
+            if s.get('input_family') == 'CMOS' and role == 'output' and {'power_out', 'ground'}.intersection(roles):
+                issue(n.name, 'logic_output_on_rail', f'{r}.{p}: push-pull output is tied directly to a supply or ground', True)
             if role=='power_in' and not sources:
                 issue(n.name,'unverified_supply',f'{r}.{p}: supply voltage is not directly traceable to a DC source')
             if role=='power_in' and (limits := s.get('supply_range')):

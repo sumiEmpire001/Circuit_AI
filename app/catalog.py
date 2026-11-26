@@ -1,4 +1,6 @@
 """Versioned logical pin catalog. Generic symbols do not claim package pinouts."""
+from app.package_catalog import PACKAGE_CATALOG
+
 def part(name, symbol, pins, required=(), voltage=None, source=None):
     return dict(name=name, symbol=symbol, pins=pins, required=list(required), voltage=voltage, source=source)
 CATALOG = {
@@ -138,3 +140,5 @@ CATALOG['adc0804lcn'] = dict(part(
         'CS','RD','WR','CLK_IN','INTR','VIN+','VIN-','AGND','VREF/2','DGND',
         'DB7','DB6','DB5','DB4','DB3','DB2','DB1','DB0','CLK_R','VCC',
     ))), supply_range=(4.5,5.5))
+
+CATALOG.update(PACKAGE_CATALOG)
