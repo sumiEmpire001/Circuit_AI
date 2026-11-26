@@ -3,36 +3,36 @@ import argparse
 import re
 from pathlib import Path
 
-from app.package_catalog import (
-    EXISTING_HC_VARIANTS, HCT_VARIANTS, LOGIC_FAMILIES, PACKAGE_CATALOG, TI_PACKAGE_CODES,
-)
+from app.package_catalog import PACKAGE_CATALOG
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('datasheets', type=Path, help='Directory of pdftotext -layout output, named by TI family')
     args = parser.parse_args()
-    matrix = {**{family: details[-1] for family, details in LOGIC_FAMILIES.items()},
-              **EXISTING_HC_VARIANTS, **HCT_VARIANTS}
     missing = []
     total = 0
-    for family, suffixes in matrix.items():
-        source = args.datasheets / f'{family}.txt'
-        if not source.is_file():
-            missing.append(f'{family}: missing {source}')
+    sources = {}
+    for spec in PACKAGE_CATALOG.values():
+        source = args.datasheets / f'{Path(spec["source"]).stem}.txt'
+        if source not in sources:
+            sources[source] = source.read_text(encoding='utf-8') if source.is_file() else None
+        if sources[source] is None:
+            missing.append(f'{spec["mpn"]}: missing {source}')
             continue
-        text = source.read_text(encoding='utf-8')
-        for suffix in suffixes.split():
-            key = family + suffix.lower()
-            spec = PACKAGE_CATALOG[key]
-            code, outline = TI_PACKAGE_CODES[suffix]
-            pattern = (rf'^\s*{spec["mpn"]}\s+Active\s+Production\s+'
-                       rf'{outline} \({code}\)\s*\|\s*{len(spec["pins"])}\b')
-            if re.search(pattern, text, re.MULTILINE):
-                total += 1
-            else:
-                missing.append(f'{spec["mpn"]}: no active {spec["package"]} addendum row')
-    print(f'Matched {total} active orderables across {len(matrix)} family datasheets.')
+        package = re.sub(r'^(PDIP|SOIC|SSOP|SOP|TSSOP)-\d+', r'\1', spec['package'])
+        head = rf'^\s*{re.escape(spec["mpn"])}\s+Active\s+Production'
+        outline = rf'{re.escape(package)}\s*\|\s*{len(spec["pins"])}\b'
+        if package.startswith('TO-263'):
+            # The KTT addendum splits the package alias and the count across lines.
+            pattern = rf'{head}[^\n]*DDPAK/[^\n]*\n\s*{outline}'
+        else:
+            pattern = rf'{head}\s+{outline}'
+        if re.search(pattern, sources[source], re.MULTILINE):
+            total += 1
+        else:
+            missing.append(f'{spec["mpn"]}: no active {spec["package"]} addendum row')
+    print(f'Matched {total} active orderables across {len(sources)} family datasheets.')
     if missing:
         parser.exit(1, '\n'.join(missing) + '\n')
 

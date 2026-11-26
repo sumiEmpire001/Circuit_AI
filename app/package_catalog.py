@@ -95,7 +95,15 @@ LOGIC_FAMILIES = {
                   (3, 4, 5, 6, 8, 9, 10, 11), (), WIDE_HC),
     'sn74hc4040': ('12-bit ripple counter', 'QL QF QE QG QD QC QB GND QA CLK CLR QI QH QJ QK VCC',
                    (1, 2, 3, 4, 5, 6, 7, 9, 12, 13, 14, 15), (), WIDE_HC),
+    'sn74hc266': ('Quad open-drain XNOR', '1A 1B 1Y 2Y 2A 2B GND 3A 3B 3Y 4Y 4A 4B VCC',
+                  (3, 4, 10, 11), (), 'N DR NSR'),
+    'sn74hc4060': ('Ripple counter and oscillator', 'QL QM QN QF QE QG QD GND CLKO CLKO_N CLKI CLR QI QH QJ VCC',
+                   (1, 2, 3, 4, 5, 6, 7, 9, 10, 13, 14, 15), (10,), 'N DR NSR'),
+    'sn74hc688': ('8-bit identity comparator', 'OE P0 Q0 P1 Q1 P2 Q2 P3 Q3 GND P4 Q4 P5 Q5 P6 Q6 P7 Q7 EQ VCC',
+                  (19,), (1, 19), 'N PWR'),
 }
+
+OPEN_DRAIN_LOGIC = {'sn74hc266': ('3', '4', '10', '11')}
 
 EXISTING_HC_VARIANTS = {
     'sn74hc00': SOIC_SOP_TSSOP, 'sn74hc02': SOIC_SOP_TSSOP,
@@ -108,7 +116,8 @@ HCT_VARIANTS = {
     'sn74hct00': 'DR PWR', 'sn74hct02': SOIC_SOP_TSSOP,
     'sn74hct04': SOIC_SOP_TSSOP, 'sn74hct08': 'N DR PWR',
     'sn74hct32': 'N DR DBR PWR', 'sn74hct74': 'DR DBR PWR',
-    'sn74hct138': COMMON_HC,
+    'sn74hct138': COMMON_HC, 'sn74hct139': 'N DR DBR PWR',
+    'sn74hct157': 'DR', 'sn74hct165': 'PWR',
 }
 
 
@@ -131,6 +140,8 @@ def logic_variants(family, base, suffixes):
 
 for family, (function, labels, outputs, active_low, suffixes) in LOGIC_FAMILIES.items():
     base = hc_package(family.upper()+'N', function, labels, outputs, active_low)
+    if family in OPEN_DRAIN_LOGIC:
+        base['open_drain'] = OPEN_DRAIN_LOGIC[family]
     PACKAGE_CATALOG.update(logic_variants(family, base, suffixes))
 
 for family, suffixes in EXISTING_HC_VARIANTS.items():
@@ -207,11 +218,12 @@ PACKAGE_CATALOG.update({
     ),
 })
 
-# The TO-252 and TO-220 pin tables use pin 2 and the tab for the same output.
+# The TO-252, TO-220 and TO-263 pin tables use pin 2 and the tab for the same output.
 # The minimum input values are the lower bounds of TI's fixed-output tests.
 for package, order_code, outputs in (
     ('TO-252 (NDP)', 'DT', ((1.8, 3.2), (2.5, 3.9), (3.3, 4.75), (5.0, 6.5))),
     ('TO-220 (NDE)', 'T', ((2.5, 3.9), (3.3, 4.75), (5.0, 6.5))),
+    ('TO-263 (KTT)', 'SX', ((3.3, 4.75), (5.0, 6.5))),
 ):
     for output, minimum_input in outputs:
         model = f'LM1117{order_code}-{output:.1f}/NOPB'

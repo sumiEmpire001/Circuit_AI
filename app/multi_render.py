@@ -313,6 +313,8 @@ def render_design(design,validation,route_order=None):
             label=pin+(' '+LCD_LABELS[pin] if c.part=='lcd1602' else ' '+spec['pin_labels'][pin] if spec.get('pin_labels') else '')
             if pin in spec.get('open_collector', ()):
                 label += ' (OC)'
+            if pin in spec.get('open_drain', ()):
+                label += ' (OD)'
             text(edge+5 if left else edge-5,py-5,label,'pin','start' if left else 'end')
             if net:
                 text(px-5 if left else px+5,py-5,net,'label','end' if left else 'start',f'data-label-net="{escape(net)}"')

@@ -132,16 +132,17 @@ def check_design(design):
         members={r for r,_,_,_ in info}; first=next(iter(members))
         for r in members-{first}: graph[first].add(r); graph[r].add(first)
         roles=[i[2] for i in info]
-        sinks = [(r, p) for r, p, _, spec in info if p in spec.get('open_collector', ())]
+        sinks = {(r, p) for r, p, _, spec in info
+                 if p in spec.get('open_collector', ()) or p in spec.get('open_drain', ())}
         driven = roles.count('output')-len(sinks)
         if 'power_out' in roles and 'ground' in roles: issue(n.name,'power_short','Supply output and ground are directly connected',True)
         if driven>1: issue(n.name,'output_conflict','Multiple driven outputs share this net',True)
         if sinks and (driven or 'power_out' in roles):
-            issue(n.name, 'open_collector_conflict', 'Open-collector output shares a net with a driven output or direct supply', True)
+            issue(n.name, 'open_collector_conflict', 'Open-collector or open-drain output shares a net with a driven output or direct supply', True)
         if roles.count('power_out')>1: issue(n.name,'multiple_supplies','Multiple supply outputs share this net; isolation is not modeled',True)
         sources=[voltage(refs[r].value) for r,p,role,s in info if refs[r].part=='dc_source' and p=='+']
         for r,p,role,s in info:
-            if s.get('input_family') == 'CMOS' and role == 'output' and {'power_out', 'ground'}.intersection(roles):
+            if s.get('input_family') == 'CMOS' and role == 'output' and (r, p) not in sinks and {'power_out', 'ground'}.intersection(roles):
                 issue(n.name, 'logic_output_on_rail', f'{r}.{p}: push-pull output is tied directly to a supply or ground', True)
             if role=='power_in' and (return_pin := s.get('supply_return')):
                 return_net = pin_net.get(f'{r}.{return_pin}')

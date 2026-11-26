@@ -46,6 +46,16 @@ The catalog now contains 193 entries, including 160 with source links and physic
 
 The separately versioned [published-v2 fixture](training/benchmarks/published_v2.json) adds three manufacturer-authored circuit topologies with documented local adaptations. Chromium matched 12 of 12 reference nets with zero unintended contacts when supplied with the expected netlists. All three free-form interpretations requested clarification. This is a reference pilot. Phase 3 acceptance requires a larger independent benchmark, at least 98% connection accuracy, and zero unintended connections.
 
+### Catalog connection audit
+
+The catalog now contains 209 entries, including 176 with sourced physical pin maps. This update adds 16 orderables across TI open-drain XNORs, oscillator counters, identity comparators, HCT decoders and multiplexers, HCT shift registers, and fixed-output LM1117 TO-263 regulators.
+
+The catalog regression checks exercise the terminal IDs and SVG net membership of all 2,674 usable catalog terminals. Each of the 209 entries also receives a routed probe scored from the emitted SVG. These checks verify that the application preserves the catalog's definitions through the netlist and rendering pipeline.
+
+The [TI addendum audit](scripts/audit_ti_packages.py) matched all 169 reviewed TI orderables against 46 manufacturer datasheets. This verifies package identity and pin counts. A separate spot check against the KiCad 9.0.2 symbol library agreed on pin numbers and electrical roles for 57 orderable records across 15 families. KiCad classified SN74HC4060 pins 9 and 10 as inputs. The TI logic diagram shows that they are driven oscillator outputs, so the catalog follows TI. [SN74HC4060 datasheet](https://www.ti.com/lit/ds/symlink/sn74hc4060.pdf)
+
+The 1,100-entry target and independent 98% connection-accuracy acceptance test are still open. Phase 4 follows those gates.
+
 ## CircuitLM 0.5 checkpoint
 
 - 326 authored training descriptions, eleven reviewed intents plus the unsupported class, 40 component definitions and eleven reviewed topologies. Local mode also accepts complete pin-level prose using a deterministic parser.
