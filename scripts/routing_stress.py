@@ -89,7 +89,9 @@ def main():
     report = {
         'seed': args.seed,
         'scope': 'Seeded placement variations of authored Studio examples',
-        'total': dict(aggregate),
+        'total': {metric: aggregate[metric] for metric in (
+            'cases', 'expected_nets', 'passed_nets', 'cases_with_unintended_contacts',
+        )},
         'net_accuracy': aggregate['passed_nets'] / aggregate['expected_nets'],
         'failure_reasons': dict(failures),
         'examples': {name: dict(counts) for name, counts in totals.items() if counts},

@@ -1,4 +1,6 @@
 """Score natural language and independently supplied routing fixtures in Studio."""
+import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -76,7 +78,17 @@ def run(page, cases, out):
 
 
 def main():
-    fixture = json.loads(FIXTURE.read_text())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--fixture', type=Path, default=FIXTURE,
+                        help='Path to the frozen reference JSON. Defaults to the published-v1 pilot.')
+    args = parser.parse_args()
+    fixture_bytes = args.fixture.read_bytes()
+    fixture = json.loads(fixture_bytes)
+    case_ids = [case['id'] for case in fixture['cases']]
+    if not case_ids or len(set(case_ids)) != len(case_ids):
+        parser.error('The fixture must contain at least one case, with a unique id for each case.')
+    if any(not case_id or not case_id.replace('_', '').replace('-', '').isalnum() for case_id in case_ids):
+        parser.error('Case ids must contain only letters, digits, underscores, or hyphens.')
     out = Path(os.getenv('PUBLISHED_RESULTS_DIR', 'published-results'))
     out.mkdir(parents=True,exist_ok=True)
     with sync_playwright() as p:
@@ -87,10 +99,15 @@ def main():
         browser.close()
     report={
         'fixture_version':fixture['version'],
+        'fixture_sha256':hashlib.sha256(fixture_bytes).hexdigest(),
         'prompts_exact':sum(case['interpretation']['outcome']=='exact' for case in results),
         'prompts_total':len(results),
         'routing_nets_passed':sum(case['strict_passed'] for case in results),
         'routing_nets_total':sum(case['expected_nets'] for case in results),
+        'cases_with_unintended_contacts':sum(
+            any({'foreign terminal', 'ambiguous crossing or overlap'}.intersection(reasons)
+                for reasons in case['strict_failures'].values()) for case in results
+        ),
         'cases':results,
     }
     (out/'results.json').write_text(json.dumps(report,indent=2)+'\n')

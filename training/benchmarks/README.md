@@ -13,3 +13,5 @@ The initial comparison on commit `f47f827` produced 0 exact interpretations, fou
 Run `python -m scripts.routing_stress --cases 5000 --output routing-stress.json` from the repository root. The suite varies component positions within 18 SVG units of the original layout for eight authored example circuits. The scorer reads rendered SVG independently of the router and reports per-example continuity, unintended contacts, and failure reasons. The report includes the seed and case count.
 
 These synthetic variants exercise layout and editing regressions. The independent acceptance benchmark still needs held-out external topologies and separate scoring of prompt interpretation.
+
+To score a frozen external fixture, supply its path with `python scripts/published_benchmark.py --fixture path/to/fixture.json`. The report includes the SHA-256 digest and case-level contact failures so runs can be tied to the same input data. Fixture provenance and independent review must be established separately.

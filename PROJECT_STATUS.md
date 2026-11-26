@@ -38,6 +38,8 @@ The additions include decoders, multiplexers, shift registers, flip-flops, and c
 
 The catalog exceeds the 145-entry intermediate checkpoint by count. The 1,100-entry target, breadth across additional component classes, completeness of electrical rules, and independent routing acceptance remain open.
 
+The authored regression run passed 288 backend tests and 284 of 284 strict nets across 32 Chromium cases. The placement stress run passed 25,000 of 25,000 nets through 5,000 seeded variations of eight authored examples, with zero unintended contacts. The published-v1 pilot yielded 15 of 15 routed reference nets and zero exact interpretations of four open-ended prompts.
+
 ## CircuitLM 0.5 checkpoint
 
 - 326 authored training descriptions, eleven reviewed intents plus the unsupported class, 40 component definitions and eleven reviewed topologies. Local mode also accepts complete pin-level prose using a deterministic parser.
