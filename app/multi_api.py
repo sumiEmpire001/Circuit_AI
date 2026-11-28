@@ -30,7 +30,7 @@ class RenderRequest(Strict):
 
 class DraftRequest(Strict):
     prompt: str=Field(min_length=3,max_length=12000)
-    parser: Literal['builtin','local']='builtin'
+    parser: Literal['auto','builtin','local']='auto'
     previous_design: Design | None=None
 
 class ModelProposal(Strict):
@@ -69,6 +69,15 @@ def builtin_design(prompt):
 
 async def ai_design(req):
     return draft_local(req.prompt, req.previous_design)
+
+
+def automatic_design(prompt):
+    if re.match(r'\s*(?:#|component\s|net\s|title\s)', prompt, re.I):
+        return builtin_design(prompt)
+    try:
+        return builtin_design(prompt)
+    except ValueError:
+        return draft_local(prompt)
 
 def result_for(design,image_format='svg'):
     validation=check_design(design)
@@ -112,7 +121,13 @@ def validate(design:Design): return check_design(design)
 async def draft(req:DraftRequest):
     if req.parser=='builtin' and req.previous_design:
         raise HTTPException(422,'Use AI mode to revise an existing design with prose, or edit the component/net tables directly.')
-    try: design=await ai_design(req) if req.parser=='local' else builtin_design(req.prompt)
+    try:
+        if req.parser=='local' or req.previous_design is not None:
+            design=await ai_design(req)
+        elif req.parser=='auto':
+            design=automatic_design(req.prompt)
+        else:
+            design=builtin_design(req.prompt)
     except ValueError as exc: raise HTTPException(422,str(exc))
     result=await run_in_threadpool(result_for,design)
     result['parser']=req.parser

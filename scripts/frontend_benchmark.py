@@ -94,6 +94,7 @@ def main():
         errors=[]
         page.on('pageerror',lambda e:errors.append(str(e)))
         page.goto(os.getenv('STUDIO_TEST_URL','http://127.0.0.1:8765/studio'))
+        page.get_by_text('Input options',exact=True).click()
         for label,parser,prompt,parts,nets in CASES:
             page.locator('#parser').select_option(parser)
             page.locator('#prompt').fill(prompt)

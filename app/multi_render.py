@@ -262,6 +262,9 @@ def render_design(design,validation,route_order=None):
                 parts.append(f'<circle class="symbol" cx="{x+115}" cy="{cy}" r="25"/>')
                 line(f'M {x+70} {cy} H {x+90} M {x+140} {cy} H {x+160} M {x+98} {cy} h 10 m -5 -5 v 10 M {x+123} {cy} h 10')
             elif kind=='switch': line(f'M {x+70} {cy} H {x+90} L {x+140} {cy-25} M {x+140} {cy} H {x+160}')
+            elif kind=='lamp':
+                parts.append(f'<circle class="symbol" cx="{x+115}" cy="{cy}" r="24"/>')
+                line(f'M {x+70} {cy} H {x+91} M {x+139} {cy} H {x+160} M {x+99} {cy-16} L {x+131} {cy+16} M {x+99} {cy+16} L {x+131} {cy-16}')
             elif kind=='motor':
                 parts.append(f'<circle class="symbol" cx="{x+115}" cy="{cy}" r="24"/>')
                 line(f'M {x+70} {cy} H {x+91} M {x+139} {cy} H {x+160}')
@@ -271,8 +274,8 @@ def render_design(design,validation,route_order=None):
             if mirrored:
                 parts.append('</g>')
             if kind=='motor':
-                text(x+115,cy+4,'M',anchor='middle')
-            elif kind not in {'resistor','ldr','thermistor','capacitor','led','diode','source','switch','inductor','crystal'}:
+                text(x+115,cy+4,'FAN' if c.part=='dc_fan' else 'M',anchor='middle')
+            elif kind not in {'resistor','ldr','thermistor','capacitor','led','diode','source','switch','inductor','crystal','lamp'}:
                 text(x+115,cy+4,spec['name'][:12],anchor='middle')
         elif kind=='pot':
             line(f'M {x} {cy} H {x+70} M {x+160} {cy} H {x+w}','wire')

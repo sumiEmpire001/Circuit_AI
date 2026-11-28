@@ -97,6 +97,7 @@ def main():
         browser=p.chromium.launch(headless=True,executable_path=os.getenv('BROWSER_EXECUTABLE'))
         page=browser.new_page(viewport={'width':1440,'height':1000})
         page.goto(os.getenv('STUDIO_TEST_URL','http://127.0.0.1:8765/studio'))
+        page.get_by_text('Input options',exact=True).click()
         results=run(page,fixture['cases'],out)
         browser.close()
     report={

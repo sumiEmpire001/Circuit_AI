@@ -33,6 +33,7 @@ def draft_local(prompt, previous_design=None):
     from app.design_examples import EXAMPLES
     from app.image_reference import ADC_PROMPT, LCD_PROMPTS
     from app.passive_intents import parse_passive_intent
+    from app.switched_loads import parse_switched_loads
     if previous_design is not None:
         # Explicit bounded value edit; no topology changes or silent constraint drops.
         match = re.fullmatch(r'change ([A-Za-z][A-Za-z0-9_+-]*) to ([0-9]+(?:\.[0-9]+)? (?:ohm|kohm|nF|uF|pF))', prompt.strip(), re.I)
@@ -52,6 +53,8 @@ def draft_local(prompt, previous_design=None):
                 return Design.model_validate(data)
         raise ValueError('Unknown component reference.')
     if design := parse_passive_intent(prompt):
+        return design
+    if design := parse_switched_loads(prompt):
         return design
     if matches_constraint_prompt(prompt):
         return parse_constraints(prompt)
@@ -80,5 +83,5 @@ def draft_local(prompt, previous_design=None):
     }
     normalized = ' '.join(tokens(prompt))
     if normalized not in approved.get(label, set()):
-        raise ValueError('Request needs clarification. Try a reviewed circuit example from Studio, or use the pin-level prose format in Studio.')
+        raise ValueError('I need more detail to draft this circuit. Name the components, supply voltage, and what should connect or be controlled. Use the pin-level format for exact wiring.')
     return EXAMPLES[label]()

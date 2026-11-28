@@ -466,11 +466,12 @@
           "parser": {
             "type": "string",
             "enum": [
+              "auto",
               "builtin",
-              "ollama"
+              "local"
             ],
             "title": "Parser",
-            "default": "builtin"
+            "default": "auto"
           },
           "previous_design": {
             "anyOf": [

@@ -11,6 +11,8 @@ CATALOG = {
  'inductor': part('Inductor', 'inductor', {'1':'passive','2':'passive'}, ('1','2')),
  'potentiometer': part('Potentiometer', 'pot', {'1':'passive','W':'passive','2':'passive'}, ('1','W','2')),
  'switch': part('Normally-open switch', 'switch', {'1':'passive','2':'passive'}, ('1','2')),
+ 'lamp_bulb': part('Low-voltage lamp bulb', 'lamp', {'1':'passive','2':'passive'}, ('1','2')),
+ 'dc_fan': part('Two-wire DC fan', 'motor', {'+':'passive','-':'passive'}, ('+','-')),
  'dc_source': part('DC supply', 'source', {'+':'power_out','-':'ground'}, ('+','-')),
  'npn': part('Generic NPN transistor', 'npn', {'B':'input','C':'passive','E':'passive'}, ('B','C','E')),
  'nmos': part('Generic N-channel MOSFET', 'nmos', {'G':'input','D':'passive','S':'passive'}, ('G','D','S')),
