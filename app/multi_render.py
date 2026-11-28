@@ -5,6 +5,8 @@ from collections import defaultdict
 from html import escape
 from app.catalog import LCD_LABELS
 from app.parallel_led import bank_placement
+from app.symbol_library import PIN_SIDES, drawing
+from app.symbol_render import svg_pin_marker, svg_symbol
 
 def passive_loop_placement(design, nets_by_pin):
     """Align the output terminals of a three-part passive loop."""
@@ -89,7 +91,10 @@ def layout(design):
     adc_interrupts={f'{c.ref}.5' for c in design.components if c.part=='adc0804lcn'}
     adc_ports={pin for terminal in adc_interrupts if terminal in nets_by_pin
                for pin in nets_by_pin[terminal].pins}
-    compact=bank_placement(design) or passive_loop_placement(design,nets_by_pin) or signal_placement(design,catalog)
+    has_imports = any(catalog[c.part]['symbol']=='kicad' for c in design.components)
+    compact = {} if has_imports else (
+        bank_placement(design) or passive_loop_placement(design,nets_by_pin) or signal_placement(design,catalog)
+    )
     # Recognize the actual series-loop topology rather than the prompt title.
     bypart={c.part:c.ref for c in design.components}
     if len(design.components)==3 and set(bypart)=={'dc_source','resistor','led'}:
@@ -103,6 +108,16 @@ def layout(design):
         x=c.position.x if c.position else compact.get(c.ref,(210+(index%cols)*620,0))[0]
         row=index//cols
         y=c.position.y if c.position else compact.get(c.ref,(0,row_tops.get(row,130)))[1]
+        if spec['symbol']=='kicad':
+            art = drawing(c.part)
+            w,h = art['size']
+            boxes[c.ref]=(x,y,w,h)
+            row_tops[row+1]=max(row_tops.get(row+1,0),y+h+140)
+            for pin, (px, py, _, angle, *_) in art['terminals'].items():
+                px = x-28 if angle==0 else x+w+28 if angle==180 else x+px
+                py = y-28 if angle==270 else y+h+28 if angle==90 else y+py
+                points[f'{c.ref}.{pin}']=(px,py,PIN_SIDES[angle])
+            continue
         if c.part=='arduino_uno':
             left=['5V','GND']+[f'A{i}' for i in range(6)]
             right=['D12','D11','D5','D4','D3','D2']+[f'D{i}' for i in [0,1,6,7,8,9,10,13]]
@@ -154,7 +169,7 @@ def layout(design):
                 points[qualified]=(2*x+w-px,py,'right' if side=='left' else 'left')
     for c in design.components:
         pins=list(catalog[c.part]['pins'])
-        if len(pins)!=2:
+        if len(pins)!=2 or catalog[c.part]['symbol']=='kicad':
             continue
         first,second=(f'{c.ref}.{pin}' for pin in pins)
         if first not in nets_by_pin or second not in nets_by_pin:
@@ -198,6 +213,8 @@ def render_design(design,validation,route_order=None):
         branches=[]
         for pin in net.pins:
             px,py,side=points[pin]
+            if side in {'top','bottom'}:
+                break
             direction=-1 if side=='left' else 1
             chosen=None
             for offset in range(12,181,8):
@@ -237,10 +254,13 @@ def render_design(design,validation,route_order=None):
         x,y,w,h=boxes[c.ref]; spec=cat[c.part]; kind=spec['symbol'];cy=y+70
         parts.append(f'<g class="component" data-ref="{c.ref}" data-x="{x}" data-y="{y}" data-width="{w}" data-height="{h}">')
         display_part = {'lamp_bulb': 'Lamp bulb', 'dc_fan': 'DC fan'}.get(c.part, c.part)
-        text(x,y-25,c.ref+' · '+display_part)
+        text(x,y-25,c.ref+' · '+(spec['name'] if kind=='kicad' else display_part))
         text(x,y-7,c.value[:40])
         two=len(spec['pins'])==2
-        if two:
+        art = drawing(c.part) if kind=='kicad' else None
+        if art:
+            parts.extend(svg_symbol(art,x,y))
+        elif two:
             mirrored=points[f"{c.ref}.{next(iter(spec['pins']))}"][2]=='right'
             if mirrored:
                 parts.append(f'<g transform="translate({2*x+w} 0) scale(-1 1)">')
@@ -308,20 +328,41 @@ def render_design(design,validation,route_order=None):
         for pin in spec['pins']:
             px,py,side=points[f'{c.ref}.{pin}'];left=side=='left';edge=x if left else x+w
             net=pin_net.get(f'{c.ref}.{pin}')
-            if pin in spec.get('active_low', ()):
+            if art:
+                tx, ty, length, angle, shape, _, _ = art['terminals'][pin]
+                tx += x
+                ty += y
+                dx,dy = {0:(1,0),90:(0,-1),180:(-1,0),270:(0,1)}[angle]
+                body_x,body_y = tx+dx*length,ty+dy*length
+                inset = svg_pin_marker(shape,body_x,body_y,angle,line,parts,f'{c.ref}.{pin}')
+                line(f'M {px} {py} L {body_x-dx*inset} {body_y-dy*inset}','wire')
+                vertical = bool(dy)
+                text(tx+dx*length/2+(4 if vertical else 0),ty+dy*length/2-4,pin,'pin',
+                     'start' if vertical else 'middle', f'data-pin-number="{c.ref}.{pin}"')
+                if label := spec['pin_labels'].get(pin):
+                    label_x, label_y = body_x+dx*4,body_y+dy*4-3
+                    rotation = f'transform="rotate(-90 {label_x} {label_y})"' if vertical else ''
+                    text(label_x,label_y,label,'pin','start' if dx>0 or dy<0 else 'end',
+                         f'data-pin-label="{c.ref}.{pin}" {rotation}')
+            elif pin in spec.get('active_low', ()):
                 direction = -1 if left else 1
                 line(f'M {px} {py} H {edge+8*direction}','wire')
                 parts.append(f'<circle class="symbol" cx="{edge+4*direction}" cy="{py}" r="4" data-active-low="{c.ref}.{pin}"/>')
             else:
                 line(f'M {px} {py} H {edge}','wire')
-            label=pin+(' '+LCD_LABELS[pin] if c.part=='lcd1602' else ' '+spec['pin_labels'][pin] if spec.get('pin_labels') else '')
-            if pin in spec.get('open_collector', ()):
-                label += ' (OC)'
-            if pin in spec.get('open_drain', ()):
-                label += ' (OD)'
-            text(edge+5 if left else edge-5,py-5,label,'pin','start' if left else 'end')
+            label=pin+(' '+LCD_LABELS[pin] if c.part=='lcd1602' else ' '+spec['pin_labels'][pin] if pin in spec.get('pin_labels', {}) else '')
+            if not art:
+                if pin in spec.get('open_collector', ()):
+                    label += ' (OC)'
+                if pin in spec.get('open_drain', ()):
+                    label += ' (OD)'
+                text(edge+5 if left else edge-5,py-5,label,'pin','start' if left else 'end')
             if net:
-                text(px-5 if left else px+5,py-5,net,'label','end' if left else 'start',f'data-label-net="{escape(net)}"')
+                if side in {'top','bottom'}:
+                    label_x,label_y,anchor=px,py+(-7 if side=='top' else 15),'middle'
+                else:
+                    label_x,label_y,anchor=px+(-5 if left else 5),py-5,'end' if left else 'start'
+                text(label_x,label_y,net,'label',anchor,f'data-label-net="{escape(net)}"')
                 parts.append(f'<circle cx="{px}" cy="{py}" r="2.7" fill="#285b36" data-pin="{c.ref}.{pin}" data-net="{net}"/>')
             else:
                 line(f'M {px-3} {py-3} l 6 6 M {px-3} {py+3} l 6 -6')

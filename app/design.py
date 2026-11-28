@@ -3,6 +3,7 @@ import re
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from app.catalog import CATALOG
+from app.symbol_library import registry, specification
 ID = r'^[A-Za-z_][A-Za-z0-9_+-]{0,31}$'
 PIN = r'^[A-Za-z0-9_+\-]{1,24}$'
 class Strict(BaseModel):
@@ -37,7 +38,7 @@ class Design(Strict):
     def valid(self):
         if any(len(n)>1000 for n in self.notes): raise ValueError('Note exceeds 1000 characters')
         if any(not re.fullmatch(ID,k) for k in self.custom_parts): raise ValueError('Invalid custom part identifier')
-        if set(self.custom_parts) & set(CATALOG): raise ValueError('Custom parts cannot override built-in definitions')
+        if self.custom_parts.keys() & (CATALOG.keys() | registry().keys()): raise ValueError('Custom parts cannot override built-in definitions')
         refs = {c.ref:c for c in self.components}
         if len(refs)!=len(self.components): raise ValueError('Duplicate component reference')
         catalog = self.catalog()
@@ -54,9 +55,12 @@ class Design(Strict):
                 ref, number = pin.split('.')
                 if ref not in refs or number not in catalog[refs[ref].part]['pins']:
                     raise ValueError(f'Unknown component or pin: {pin}')
+                if number in catalog[refs[ref].part].get('no_connect', ()):
+                    raise ValueError(f'Pin {pin} is marked no-connect in the symbol library.')
         return self
     def catalog(self):
-        return {**CATALOG, **{k:dict(v.model_dump(),symbol='custom',voltage=None,source=None) for k,v in self.custom_parts.items()}}
+        imported = {c.part:specification(c.part) for c in self.components if c.part in registry()}
+        return {**CATALOG, **imported, **{k:dict(v.model_dump(),symbol='custom',voltage=None,source=None) for k,v in self.custom_parts.items()}}
 def voltage(value):
     match=re.fullmatch(r'\s*(\d+(?:\.\d+)?)\s*[vV]\s*',value)
     return float(match[1]) if match else None

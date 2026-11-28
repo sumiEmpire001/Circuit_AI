@@ -19,14 +19,14 @@ net GND D1.K V1.-</pre></details></section><section class="card"><details><summa
 <p id="traceInfo" aria-live="polite"></p>
 </div><div id="canvas"><p style="color:#34422e;padding:24px">Your circuit diagram will appear here.</p></div><p class="hint">Drag symbols to reposition them. Trace a net to highlight its wires and pins.</p><div class="actions"><button id="svg">Download SVG</button><button id="png">Download PNG</button><button id="json">Download editable JSON</button></div><div id="validation"></div><div id="calculations" hidden></div></section><section class="card"><h2>Components and connections</h2><div class="scroll"><table><thead><tr><th>Reference</th><th>Part</th><th>Value / model</th><th></th></tr></thead><tbody id="components"></tbody></table></div><div class="actions"><button id="addComponent" class="secondary">Add component</button><button id="addNet" class="secondary">Add connection</button></div><div class="scroll"><table><thead><tr><th>Net name</th><th>Connected pins (REF.PIN, separated by spaces)</th><th></th></tr></thead><tbody id="nets"></tbody></table></div><details><summary>Advanced editable JSON / custom parts</summary><p class="hint">For devices outside the catalog, define exact logical pin names and roles in custom_parts. Custom pinouts remain unverified. Maximum 200 components per diagram.</p><textarea id="jsonEditor" spellcheck="false"></textarea><div class="actions"><button id="applyJson" class="secondary">Apply JSON & check</button></div></details></section></div></div></main>
 <script>
-const $=id=>document.getElementById(id);let design=null,currentSVG='',catalog={},examples={},busy=true,dirty=false;
+const $=id=>document.getElementById(id);let design=null,currentSVG='',catalog={},symbols={},examples={},busy=true,dirty=false;
 const status=t=>$('status').textContent=t;
 function markDirty(){dirty=true;status('Edits pending — apply edits to update the diagram and downloads.');syncJSON()}
 function syncJSON(){if(design)$('jsonEditor').value=JSON.stringify(design,null,2)}
 async function api(path,body){const headers={'Content-Type':'application/json'};if($('key').value)headers['X-API-Key']=$('key').value;const r=await fetch(path,{method:body?'POST':'GET',headers,body:body?JSON.stringify(body):undefined});let d;try{d=await r.json()}catch{throw Error('Server returned an unreadable response. Please retry.')}if(!r.ok)throw Error(typeof d.detail==='string'?d.detail:JSON.stringify(d.detail||d));return d}
 async function run(work){if(busy)return;busy=true;document.querySelectorAll('button,input,select,textarea').forEach(b=>b.disabled=true);try{await work()}catch(e){status(e.message)}finally{busy=false;document.querySelectorAll('button,input,select,textarea').forEach(b=>b.disabled=false)}}
 function save(){try{localStorage.setItem('circuit-ai-draft-v2',JSON.stringify(design))}catch{}}
-function accept(r){design=r.design;currentSVG=r.image.svg;dirty=false;$('canvas').innerHTML=currentSVG;$('count').textContent=`${design.components.length} components · ${design.nets.length} nets`;renderTables();syncJSON();save();showValidation(r.validation);showCalculations(r.calculations);initTrace(r.routing_audit);status(`Draft ready · ${r.routed_nets?.length??0} routed nets · ${r.unrouted_nets?.length??0} label-only nets · ${r.routing_audit?.conflicts.length??0} visible cross-net contacts · ${r.routing_audit?.continuous_nets?.length??0} continuous nets. Review before building.`);installDrag()}
+function accept(r){Object.assign(symbols,r.symbol_parts);design=r.design;currentSVG=r.image.svg;dirty=false;$('canvas').innerHTML=currentSVG;$('count').textContent=`${design.components.length} components · ${design.nets.length} nets`;renderTables();syncJSON();save();showValidation(r.validation);showCalculations(r.calculations);initTrace(r.routing_audit);status(`Draft ready · ${r.routed_nets?.length??0} routed nets · ${r.unrouted_nets?.length??0} label-only nets · ${r.routing_audit?.conflicts.length??0} visible cross-net contacts · ${r.routing_audit?.continuous_nets?.length??0} continuous nets. Review before building.`);installDrag()}
 let routeAudit;
 function initTrace(audit){
   routeAudit=audit;
@@ -73,7 +73,7 @@ function showCalculations(results=[]){
 function showValidation(v){const box=$('validation');box.replaceChildren();const p=document.createElement('p');p.className=v.errors.length?'error':'good';p.textContent=v.errors.length?`${v.errors.length} electrical-rule errors — resolve before building.`:'Basic draft checks passed. Simulation and hardware verification have not been run.';box.append(p);const list=document.createElement('ul');for(const i of [...v.errors,...v.warnings]){const li=document.createElement('li');li.className=v.errors.includes(i)?'error':'warning';li.textContent=`${i.target}: ${i.message}`;list.append(li)}box.append(list);for(const note of design.notes||[]){const p=document.createElement('p');p.className='hint';p.textContent=note;box.append(p)}}
 function cellInput(row,value,change){const td=document.createElement('td'),input=document.createElement('input');input.value=value;input.oninput=()=>{change(input.value);markDirty()};td.append(input);row.append(td);return input}
 function delButton(row,fn){const td=document.createElement('td'),b=document.createElement('button');b.className='secondary';b.textContent='Remove';b.onclick=()=>{fn();renderTables();markDirty()};td.append(b);row.append(td)}
-function renderTables(){const body=$('components');body.replaceChildren();for(const c of design.components){const tr=document.createElement('tr');cellInput(tr,c.ref,v=>{const old=c.ref;c.ref=v;for(const n of design.nets)n.pins=n.pins.map(p=>p.startsWith(old+'.')?v+p.slice(old.length):p)});const td=document.createElement('td'),select=document.createElement('select');for(const [id,part] of Object.entries({...catalog,...design.custom_parts})){const o=document.createElement('option');o.value=id;o.textContent=id;select.append(o)}select.value=c.part;select.onchange=()=>{c.part=select.value;markDirty()};td.append(select);tr.append(td);cellInput(tr,c.value||'',v=>c.value=v);delButton(tr,()=>{design.components=design.components.filter(i=>i!==c);design.nets=design.nets.map(n=>({...n,pins:n.pins.filter(p=>!p.startsWith(c.ref+'.'))})).filter(n=>n.pins.length>=2)});body.append(tr)}const nets=$('nets');nets.replaceChildren();for(const n of design.nets){const tr=document.createElement('tr');cellInput(tr,n.name,v=>n.name=v);cellInput(tr,n.pins.join(' '),v=>n.pins=v.trim().split(/[\s,]+/));delButton(tr,()=>design.nets=design.nets.filter(i=>i!==n));nets.append(tr)}}
+function renderTables(){const body=$('components');body.replaceChildren();for(const c of design.components){const tr=document.createElement('tr');cellInput(tr,c.ref,v=>{const old=c.ref;c.ref=v;for(const n of design.nets)n.pins=n.pins.map(p=>p.startsWith(old+'.')?v+p.slice(old.length):p)});const td=document.createElement('td'),select=document.createElement('select');for(const [id,part] of Object.entries({...catalog,...symbols,...design.custom_parts})){const o=document.createElement('option');o.value=id;o.textContent=part.library_id??id;select.append(o)}if(!Array.from(select.options).some(option=>option.value===c.part))select.add(new Option(c.part,c.part));select.value=c.part;select.onchange=()=>{c.part=select.value;markDirty()};td.append(select);tr.append(td);cellInput(tr,c.value||'',v=>c.value=v);delButton(tr,()=>{design.components=design.components.filter(i=>i!==c);design.nets=design.nets.map(n=>({...n,pins:n.pins.filter(p=>!p.startsWith(c.ref+'.'))})).filter(n=>n.pins.length>=2)});body.append(tr)}const nets=$('nets');nets.replaceChildren();for(const n of design.nets){const tr=document.createElement('tr');cellInput(tr,n.name,v=>n.name=v);cellInput(tr,n.pins.join(' '),v=>n.pins=v.trim().split(/[\s,]+/));delButton(tr,()=>design.nets=design.nets.filter(i=>i!==n));nets.append(tr)}}
 async function rebuild(){if(!design)throw Error('Load or generate a circuit first.');accept(await api('/v2/render',{design}))}
 const sharedPrompt=new URLSearchParams(location.search).get('prompt');
 if(sharedPrompt) $('prompt').value=sharedPrompt.slice(0,12000);
@@ -101,11 +101,12 @@ let zoom=1;function applyZoom(){const s=$('canvas').querySelector('svg');if(s){s
 document.querySelectorAll('button,input,select,textarea').forEach(b=>b.disabled=true);
 function renderCatalog(){
   const filter=$('catalogSearch').value.trim().toLowerCase();
-  const matches=Object.entries(catalog).filter(([id,p])=>
-    [id,p.name,p.manufacturer,p.package,p.logic_levels].join(' ').toLowerCase().includes(filter));
+  const matches=Object.entries({...catalog,...symbolMatches}).filter(([id,p])=>
+    [id,p.name,p.library_id,p.manufacturer,p.package,p.logic_levels].join(' ').toLowerCase().includes(filter));
   $('catalogCount').textContent=matches.length>25
     ?'Showing 25 of '+matches.length+' matches. Refine your search.'
     :matches.length+' matching components';
+  if(!filter && symbolCount)$('catalogCount').textContent+=' · Search '+symbolCount.toLocaleString()+' library symbols by name';
   const container=$('catalog');
   container.replaceChildren();
   for(const [id,p] of matches.slice(0,25)){
@@ -113,8 +114,8 @@ function renderCatalog(){
     row.className='hint';
     const title=document.createElement('strong');
     title.textContent=p.name;
-    const details=[p.manufacturer,p.package,p.logic_levels,p.supply_range ? p.supply_range.join('–')+' V' : null].filter(Boolean);
-    const pins=Object.keys(p.pins).map(pin=>p.pin_labels ? pin+' '+p.pin_labels[pin] : pin);
+    const details=[p.library_id,p.manufacturer,p.package,p.logic_levels,p.supply_range ? p.supply_range.join('–')+' V' : null].filter(Boolean);
+    const pins=Object.keys(p.pins).map(pin=>p.pin_labels?.[pin] ? pin+' '+p.pin_labels[pin] : pin);
     row.append(title,document.createElement('br'),details.length ? details.join(' · ')+' · ' : '', id,
       document.createElement('br'),'Pins: '+pins.join(', '));
     if(p.source){
@@ -123,9 +124,36 @@ function renderCatalog(){
       source.textContent=p.mpn?'Datasheet':'Reference';
       row.append(' ', source);
     }
+    if(p.library_id){
+      const button=document.createElement('button');
+      button.className='secondary';
+      button.textContent='Show symbol';
+      button.onclick=()=>run(async()=>{
+        $('prompt').value='Show the schematic symbol for '+p.library_id;
+        accept(await api('/v2/draft',{prompt:$('prompt').value,parser:'local'}));
+      });
+      row.append(' ',button);
+    }
     container.append(row);
   }
 }
-$('catalogSearch').addEventListener('input',renderCatalog);
-(async()=>{try{const [cap,ex]=await Promise.all([api('/v2/catalog'),api('/v2/examples')]);catalog=cap.parts;examples=ex;$('aiStatus').textContent=cap.ai_configured?'CircuitLM is ready. Enter a circuit description or an explicit netlist.':'Local model unavailable. Examples and explicit connections are available.';renderCatalog();const saved=localStorage.getItem('circuit-ai-draft-v2');if(saved){design=JSON.parse(saved);renderTables();syncJSON();status('Saved draft restored. Apply edits & check to render it.')}}catch(e){status(e.message)}finally{busy=false;document.querySelectorAll('button,input,select,textarea').forEach(b=>b.disabled=false)}})();
+let symbolMatches={}, searchTimer, symbolCount=0;
+$('catalogSearch').addEventListener('input',()=>{
+  clearTimeout(searchTimer);
+  symbolMatches={};
+  renderCatalog();
+  const query=$('catalogSearch').value.trim();
+  if(!query || query.length>100) return;
+  searchTimer=setTimeout(async()=>{
+    try{
+      const result=await api('/v2/symbols?q='+encodeURIComponent(query));
+      if($('catalogSearch').value.trim()!==query) return;
+      symbolMatches=result.parts;
+      renderCatalog();
+    }catch(e){
+      if($('catalogSearch').value.trim()===query)$('catalogCount').textContent+=' · Symbol search unavailable';
+    }
+  },200);
+});
+(async()=>{try{const [cap,ex]=await Promise.all([api('/v2/catalog'),api('/v2/examples')]);catalog=cap.parts;symbolCount=cap.symbol_count??0;examples=ex;$('aiStatus').textContent=cap.ai_configured?'CircuitLM is ready. Enter a circuit description or an explicit netlist.':'Local model unavailable. Examples and explicit connections are available.';renderCatalog();const saved=localStorage.getItem('circuit-ai-draft-v2');if(saved){design=JSON.parse(saved);renderTables();syncJSON();status('Saved draft restored. Apply edits & check to render it.')}}catch(e){status(e.message)}finally{busy=false;document.querySelectorAll('button,input,select,textarea').forEach(b=>b.disabled=false)}})();
 </script></body></html>

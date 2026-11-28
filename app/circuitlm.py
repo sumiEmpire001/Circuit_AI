@@ -34,6 +34,7 @@ def draft_local(prompt, previous_design=None):
     from app.image_reference import ADC_PROMPT, LCD_PROMPTS
     from app.passive_intents import parse_passive_intent
     from app.switched_loads import parse_switched_loads
+    from app.symbol_library import SYMBOL_REQUEST, lookup, specification
     if previous_design is not None:
         # Explicit bounded value edit; no topology changes or silent constraint drops.
         match = re.fullmatch(r'change ([A-Za-z][A-Za-z0-9_+-]*) to ([0-9]+(?:\.[0-9]+)? (?:ohm|kohm|nF|uF|pF))', prompt.strip(), re.I)
@@ -52,6 +53,24 @@ def draft_local(prompt, previous_design=None):
                 component['value'] = value
                 return Design.model_validate(data)
         raise ValueError('Unknown component reference.')
+    if request := SYMBOL_REQUEST.fullmatch(prompt.strip().removesuffix('.').strip()):
+        name = request[1].strip()
+        from app.catalog import CATALOG
+        from app.constraint_parser import NAMES
+        from app.design import Design
+        part = NAMES.get(name.casefold()) or lookup(name)
+        if part is None:
+            raise ValueError(f'Unknown symbol “{name}”. Use the exact part number or library-qualified name.')
+        spec = CATALOG.get(part) or specification(part)
+        reference = spec.get('reference') or {
+            'resistor':'R','ldr':'R','thermistor':'R','pot':'RV','capacitor':'C',
+            'inductor':'L','led':'D','diode':'D','npn':'Q','nmos':'Q','lamp':'L',
+            'crystal':'Y','switch':'SW','motor':'M','source':'V','connector':'J',
+        }.get(spec['symbol'],'U')
+        ref = reference+'1'
+        return Design(title=f"{spec['name'][:96]} schematic symbol",
+                      components=[dict(ref=ref, part=part)],
+                      notes=['Symbol reference drawing. No circuit connections were requested.'])
     if design := parse_passive_intent(prompt):
         return design
     if design := parse_switched_loads(prompt):

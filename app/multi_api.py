@@ -17,6 +17,7 @@ from app.circuitlm import draft_local
 from app.design import Design, Strict, check_design
 from app.design_examples import EXAMPLES, led_bank
 from app.route_repair import render_repaired, route_names
+from app.symbol_library import LICENSE, SOURCE, normalized, registry, specification
 
 router=APIRouter()
 
@@ -91,7 +92,8 @@ def result_for(design,image_format='svg'):
         zoom=min(2,4096/max(size))
         png=resvg_py.svg_to_bytes(svg_string=svg,zoom=zoom,font_files=[str(Path(__file__).with_name('fonts')/'SchematicSans.ttf')])
         image={'mime_type':'image/png','base64':base64.b64encode(png).decode()}
-    return dict(schema_version='2.0',design=data,validation=validation,image=image,
+    symbol_parts = {c.part:specification(c.part) for c in design.components if c.part in registry()}
+    return dict(schema_version='2.0',design=data,validation=validation,image=image,symbol_parts=symbol_parts,
                 routing='Continuous wire routes where feasible; matching labels connect unrouted nets. Interior wire crossings connect only at junction dots.',
                 routing_audit=routing_audit,
                 calculations=calculate(design,validation),
@@ -104,9 +106,23 @@ def studio(): return Path(__file__).with_name('studio.html').read_text()
 
 @router.get('/v2/catalog')
 def catalog():
-    return dict(version='0.5.4',parts=CATALOG,limits=dict(components=200,nets=1000,custom_parts=100,pins_per_custom_part=64),
+    return dict(version='0.5.4',parts=CATALOG,symbol_count=len(registry()),limits=dict(components=200,nets=1000,custom_parts=100,pins_per_custom_part=64),
                 ai_configured=True,
                 notes='Definitions with pin_labels use the cited package pin numbers. Generic symbols use logical terminal names.')
+
+@router.get('/v2/symbols')
+def symbols(q: str = '', limit: int = 25):
+    if not 1 <= limit <= 100 or len(q)>100:
+        raise HTTPException(422,'Use a search up to 100 characters and a limit between 1 and 100.')
+    query = normalized(q)
+    entries = registry()
+    matches = [part for part, entry in entries.items()
+               if query in normalized(entry[0]) or query == part]
+    matches.sort(key=lambda part: (normalized(entries[part][0].split(':',1)[1])!=query,
+                                   normalized(entries[part][0])))
+    return dict(total=len(entries), matches=len(matches), source=SOURCE, license=LICENSE,
+                parts={part:specification(part) for part in matches[:limit]})
+
 
 @router.get('/v2/examples')
 def examples(): return {k:f().model_dump(exclude_none=True) for k,f in EXAMPLES.items()}

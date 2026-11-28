@@ -105,16 +105,25 @@ def route_grid(design,validation,allow_crossings=False, rails_first=False):
         return None
     svg,boxes,size=render_design(design,validation,route_order=[])
     width,height=size
-    rects=[(x-27,y-5,x+w+27,y+h+5) for x,y,w,h in boxes.values()]
+    vertical_refs = {pin.split('.')[0] for pin, (_,_,side) in points.items() if side in {'top','bottom'}}
+    rects=[]
+    for ref,(x,y,w,h) in boxes.items():
+        pad_y = 27 if ref in vertical_refs else 5
+        rects.append((x-27,y-pad_y,x+w+27,y+h+pad_y))
     terminal_dirs={(x,y):side for x,y,side in points.values()}
     if len(terminal_dirs)!=len(points): return None
     xs={20,width-20};ys={80,height-20}
     for a,b,c,d in rects:
         xs.update((a-15,c+15));ys.update((b-15,d+15))
+    outward={'left':(-1,0),'right':(1,0),'top':(0,-1),'bottom':(0,1)}
     for x,y,side in points.values():
-        direction=-1 if side=='left' else 1
-        xs.update(x+direction*offset for offset in (0,4,8,12,16))
-        ys.update((y,y-12,y+12))
+        dx,dy=outward[side]
+        if dx:
+            xs.update(x+dx*offset for offset in (0,4,8,12,16))
+            ys.update((y,y-12,y+12))
+        else:
+            xs.update((x,x-12,x+12))
+            ys.update(y+dy*offset for offset in (0,4,8,12,16))
     xs=sorted(x for x in xs if 10<=x<=width-10)
     ys=sorted(y for y in ys if 70<=y<=height-10)
     if len(xs)*len(ys)>16000: return None
@@ -122,8 +131,11 @@ def route_grid(design,validation,allow_crossings=False, rails_first=False):
     def legal(p,q):
         for t,other in ((p,q),(q,p)):
             side=terminal_dirs.get(t)
-            if side and (t[1]!=other[1] or (other[0]-t[0])*(-1 if side=='left' else 1)<=0):
-                return False
+            if side:
+                dx,dy=outward[side]
+                delta_x,delta_y=other[0]-t[0],other[1]-t[1]
+                if (dx and delta_y) or (dy and delta_x) or delta_x*dx+delta_y*dy<=0:
+                    return False
         return not any(min(p[0],q[0])<=c and max(p[0],q[0])>=a and min(p[1],q[1])<=d and max(p[1],q[1])>=b for a,b,c,d in rects)
     @lru_cache(maxsize=None)
     def neighbors(p):

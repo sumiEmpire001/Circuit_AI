@@ -6,6 +6,7 @@ import re
 
 from app.catalog import CATALOG
 from app.design import Design
+from app.symbol_library import lookup, specification
 
 IDENTIFIER = r'[A-Za-z_][A-Za-z0-9_+\-]{0,31}'
 DECLARATION = re.compile(
@@ -57,10 +58,12 @@ def parse_component(description):
     lowered = declaration.lower()
     name = next((name for name in ORDERED_NAMES
                  if lowered==name or lowered.endswith(' '+name)), None)
-    if name is None:
-        raise ValueError(f'Unknown part in declaration for {match["ref"]}.')
-    part = NAMES[name]
-    value = declaration[:-len(name)].strip()
+    part = NAMES[name] if name==lowered else lookup(declaration)
+    if part is None:
+        if name is None:
+            raise ValueError(f'Unknown part in declaration for {match["ref"]}.')
+        part = NAMES[name]
+    value = '' if part.startswith('ks_') else declaration[:-len(name)].strip()
     family = UNIT_FAMILIES.get(part)
     if family:
         value = value.replace('µ','u').replace('μ','u').replace('Ω','ohm').replace('ω','ohm')
@@ -91,12 +94,16 @@ def resolve_terminal(token, components):
     component = components.get(ref)
     if component is None:
         raise ValueError(f'Unknown component {ref}.')
-    spec = CATALOG[component['part']]
+    spec = CATALOG.get(component['part']) or specification(component['part'])
     if component['part']=='dc_source':
         pin = {'POSITIVE': '+', 'NEGATIVE': '-'}.get(pin, pin)
     if pin not in spec['pins']:
-        pin = next((number for number,label in spec.get('pin_labels', {}).items()
-                    if label.upper()==pin), pin)
+        candidates = [number for number,label in spec.get('pin_labels', {}).items()
+                      if label.upper()==pin]
+        if len(candidates)>1:
+            raise ValueError(f'Ambiguous pin label {ref}.{pin}. Use the physical pin number.')
+        if candidates:
+            pin = candidates[0]
     if pin not in spec['pins']:
         raise ValueError(f'Unknown pin {ref}.{pin}.')
     return f'{ref}.{pin}'
