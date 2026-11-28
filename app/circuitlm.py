@@ -83,5 +83,5 @@ def draft_local(prompt, previous_design=None):
     }
     normalized = ' '.join(tokens(prompt))
     if normalized not in approved.get(label, set()):
-        raise ValueError('I need more detail to draft this circuit. Name the components, supply voltage, and what should connect or be controlled. Use the pin-level format for exact wiring.')
+        raise ValueError('Request needs clarification. Name the components, supply voltage, and what should connect or be controlled. Use the pin-level format for exact wiring.')
     return EXAMPLES[label]()
