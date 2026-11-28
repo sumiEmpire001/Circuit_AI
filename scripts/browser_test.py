@@ -8,7 +8,7 @@ def main():
         browser=p.chromium.launch(headless=True,executable_path=os.getenv('BROWSER_EXECUTABLE','/usr/bin/chromium'),args=['--no-sandbox'])
         page=browser.new_page(viewport={'width':1440,'height':1000});errors=[]
         page.on('pageerror',lambda e:errors.append(str(e)))
-        page.goto(os.getenv('STUDIO_TEST_URL','http://127.0.0.1:8765/studio'))
+        page.goto(os.getenv('STUDIO_TEST_URL','http://127.0.0.1:8765/'))
         page.wait_for_function("!document.getElementById('generate').disabled")
         assert not page.locator('#prompt').input_value()
         page.locator('#prompt').fill('I need a connection for two light bulb one switch one fan I need the circuit diagram for this.')
@@ -16,7 +16,6 @@ def main():
         page.wait_for_function("document.getElementById('status').textContent.includes('3 continuous nets')")
         assert page.locator('#components tr').count()==5
         assert '0 visible cross-net contacts' in page.locator('#status').inner_text()
-        page.get_by_text('Examples',exact=True).click()
         page.locator('#example').select_option('led_single')
         page.get_by_role('button',name='Load example',exact=True).click()
         page.wait_for_function("document.querySelectorAll('#components tr').length === 3")

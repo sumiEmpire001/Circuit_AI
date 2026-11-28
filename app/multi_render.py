@@ -236,7 +236,8 @@ def render_design(design,validation,route_order=None):
     for c in design.components:
         x,y,w,h=boxes[c.ref]; spec=cat[c.part]; kind=spec['symbol'];cy=y+70
         parts.append(f'<g class="component" data-ref="{c.ref}" data-x="{x}" data-y="{y}" data-width="{w}" data-height="{h}">')
-        text(x,y-25,c.ref+' · '+c.part)
+        display_part = {'lamp_bulb': 'Lamp bulb', 'dc_fan': 'DC fan'}.get(c.part, c.part)
+        text(x,y-25,c.ref+' · '+display_part)
         text(x,y-7,c.value[:40])
         two=len(spec['pins'])==2
         if two:

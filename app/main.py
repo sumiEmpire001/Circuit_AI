@@ -185,6 +185,10 @@ def spice(components):
 app = FastAPI(title='Circuit API', version='0.3.0', description='Checked template schematics; independent local intent classifier at /v2/draft. Not a trained universal circuit model.')
 @app.get('/', response_class=HTMLResponse)
 def home():
+    return Path(__file__).with_name('studio.html').read_text()
+
+@app.get('/simple', response_class=HTMLResponse)
+def simple():
     return Path(__file__).with_name('index.html').read_text()
 
 @app.get('/health')

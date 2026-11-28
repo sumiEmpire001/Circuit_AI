@@ -9,14 +9,16 @@ ITEM = re.compile(
     r'(?P<count>[1-8]|one|two|three|four|five|six|seven|eight|a|an|single)\s+'
     r'(?P<part>(?:light\s+)?bulbs?|lamps?|(?:dc\s+)?fans?|(?:on/off\s+)?switch(?:es)?)\b'
 )
-SEPARATOR = re.compile(r'^\s*(?:(?:,|\band\b|\bplus\b|\bwith\b|\bcontrolled by\b)\s*)*')
+SEPARATOR = re.compile(
+    r'^\s*(?:(?:[,;]|\b(?:and|plus|with|controls?|(?:all )?controlled by)\b)\s*)*'
+)
 INTRO = re.compile(
     r'^(?:(?:please )?(?:i (?:need|want)|draw|generate|design|create|show me|wire|connect) )?'
-    r'(?:(?:a |the )?(?:connection|(?:circuit )?diagram)(?: for| of)? |(?:a )?circuit (?:for|with) )?'
+    r'(?:(?:a |the )?(?:connection|(?:circuit )?diagram)(?: for| of| showing| with)? |(?:a )?circuit (?:for|with) )?'
 )
 END = re.compile(r'[.!?]*\s+(?:i need (?:the |a )?(?:circuit )?diagram(?: for this)?|(?:in )?parallel)$')
 SUPPLY = re.compile(
-    r'\s+(?:powered by|using|on)\s+(?:a )?(\d+(?:\.\d+)?)\s*(?:v|volts?)\s+dc'
+    r'\s+(?:powered by|using|on|with)\s+(?:a )?(\d+(?:\.\d+)?)\s*(?:v|volts?)\s*dc'
     r'(?:\s+(?:supply|source|battery))?$'
 )
 
@@ -29,6 +31,7 @@ def parse_switched_loads(prompt):
     if supply:
         request = request[:supply.start()]
     request = END.sub('', request)
+    request = re.sub(r'\s+in parallel(?=\s*(?:,?\s+(?:all )?controlled by)\b)', '', request)
     counts = Counter()
     remaining = request
     while remaining:
